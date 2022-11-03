@@ -1,8 +1,7 @@
 from flask import Flask, jsonify
 from flask_migrate import Migrate
-
-from server.models import *
 from server.database import db
+from server.models import *  # NOQA
 
 DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/postgres"
 

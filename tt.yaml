@@ -11,40 +11,39 @@ metadata:
   name: tt
 spec:
   containers:
-  - image: tt-server:latest
-    name: beautifulchaum
-    ports:
-    - containerPort: 8080
-      hostPort: 8080
-    resources: {}
-    securityContext:
-      capabilities:
-        drop:
-        - CAP_MKNOD
-        - CAP_NET_RAW
-        - CAP_AUDIT_WRITE
-    tty: true
-  - args:
-    - postgres
-    image: tt-pg:latest
-    name: quizzicalbrattain
-    resources: {}
-    securityContext:
-      capabilities:
-        drop:
-        - CAP_MKNOD
-        - CAP_NET_RAW
-        - CAP_AUDIT_WRITE
-    tty: true
-    volumeMounts:
-    - mountPath: /var/lib/postgresql/data
-      name: var-travel-trails-host-0
+    - image: tt-server:latest
+      name: beautifulchaum
+      ports:
+        - containerPort: 8080
+          hostPort: 8080
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+            - CAP_MKNOD
+            - CAP_NET_RAW
+            - CAP_AUDIT_WRITE
+      tty: true
+    - args:
+        - postgres
+      image: tt-pg:latest
+      name: quizzicalbrattain
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+            - CAP_MKNOD
+            - CAP_NET_RAW
+            - CAP_AUDIT_WRITE
+      tty: true
+      volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: var-travel-trails-host-0
   hostname: tt
   restartPolicy: Never
   volumes:
-  - hostPath:
-      path: /var/travel-trails
-      type: Directory
-    name: var-travel-trails-host-0
+    - hostPath:
+        path: /var/travel-trails
+        type: Directory
+      name: var-travel-trails-host-0
 status: {}
-

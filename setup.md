@@ -10,6 +10,13 @@ curl -sSL https://install.python-poetry.org | python3 -
 poetry install
 ```
 
+Install pre-commit
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
 To add python dependencies:
 
 ```bash
@@ -32,11 +39,13 @@ sudo apt install nvidia-container-toolkit
 ```
 
 Create a directory for postgres
+
 ```bash
 sudo mkdir /var/travel-trails
 ```
 
 Start server
+
 ```bash
 ./server-run.sh
 ```
