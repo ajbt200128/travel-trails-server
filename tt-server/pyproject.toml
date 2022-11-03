@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "travel-trails-server"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "server"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+Flask = "^2.2.2"
+gunicorn = {extras = ["gevent"], version = "^20.1.0"}
+flask-sqlalchemy = "^3.0.2"
+Flask-Migrate = "^3.1.0"
+alembic = "^1.8.1"
+psycopg2-binary = "^2.9.5"
+pycolmap = "^0.3.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
