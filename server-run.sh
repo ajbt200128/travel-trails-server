@@ -45,4 +45,4 @@ if [$? -eq 0]; then
     elevate_cmd podman play kube --down tt.yaml
 fi
 
-elevate_cmd sudo podman play --build tt.yaml
+elevate_cmd sudo podman play kube --build tt.yaml
