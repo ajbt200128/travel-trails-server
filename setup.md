@@ -38,14 +38,21 @@ distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
 sudo apt install nvidia-container-toolkit
 ```
 
-Create a directory for postgres
+Create a directory for postgres and models/images
 
 ```bash
 sudo mkdir /var/travel-trails
+sudo mkdir /var/travel-trails-data
 ```
 
 Start server
 
 ```bash
 ./server-run.sh
+```
+
+Stop server
+
+```bash
+./server-down.sh
 ```
