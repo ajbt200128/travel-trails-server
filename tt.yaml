@@ -24,6 +24,9 @@ spec:
             - CAP_NET_RAW
             - CAP_AUDIT_WRITE
       tty: true
+      volumeMounts:
+        - mountPath: /data
+          name: var-travel-trails-data-host-0
     - args:
         - postgres
       image: tt-pg:latest
@@ -46,4 +49,8 @@ spec:
         path: /var/travel-trails
         type: Directory
       name: var-travel-trails-host-0
+    - hostPath:
+        path: /var/travel-trails-files
+        type: Directory
+      name: var-travel-trails-data-host-0
 status: {}

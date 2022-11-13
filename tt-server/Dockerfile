@@ -1,5 +1,6 @@
 FROM nvidia/cuda:11.8.0-base-ubuntu22.04
 WORKDIR /server
+VOLUME /data
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update -y
@@ -17,5 +18,6 @@ COPY README.md ./
 COPY entrypoint.sh ./
 
 RUN poetry install --no-dev
+
 
 CMD ["poetry", "run", "./entrypoint.sh"]
