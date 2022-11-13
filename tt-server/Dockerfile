@@ -8,6 +8,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt update -y
 RUN apt install -y python3.9 python3.9-distutils python3-pip netcat
 RUN python3.9 -m pip install poetry
+RUN apt install ffmpeg libsm6 libxext6  -y
 
 COPY pyproject.toml poetry.lock ./
 COPY server ./server

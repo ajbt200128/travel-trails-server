@@ -1,3 +1,5 @@
+import pathlib
+
 import pycolmap
 from flask import Flask, jsonify
 from flask_migrate import Migrate
@@ -23,8 +25,8 @@ def hello():
 
 @app.route("/genmodel")
 def colmap():
-    image_dir = "/var/travel-trails-files/images/gerrard/"
-    output_path = "/var/travel-trails-files/models/gerrard"
+    image_dir = pathlib.Path("/var/travel-trails-files/images/gerrard/")
+    output_path = pathlib.Path("/var/travel-trails-files/models/gerrard")
 
     output_path.mkdir()
     mvs_path = output_path / "mvs"
