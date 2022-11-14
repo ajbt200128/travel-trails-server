@@ -1,3 +1,4 @@
+import subprocess
 import uuid
 from pathlib import Path
 
@@ -15,9 +16,45 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["UPLOAD_FOLDER"] = "/data"
 
+# app.config["COLMAP_DATA"] = "/data"
 db.init_app(app)
 
 migrate = Migrate(app, db)
+
+# GENERATE MODEL
+# check for CUDA support
+result = subprocess.run(
+    ["nvidia-smi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+)
+print(result.stdout)
+result = subprocess.run(["nvcc", "--version"], stdout=subprocess.PIPE, text=True)
+print(result.stdout)
+
+print("Generating Model")
+image_dir = Path("/data/images/gerrard/")
+output_path = Path("/data/models/gerrard")
+
+output_path.mkdir(exist_ok=True)
+
+mvs_path = output_path / "mvs"
+database_path = output_path / "database.db"
+print("Database_path: " + str(database_path))
+
+# print("EXTRACT FEATURES")
+# pycolmap.extract_features(database_path, image_dir)
+# print("MATCH FEATURES")
+# pycolmap.match_exhaustive(database_path)
+# print("INCREMENTAL MAPPING")
+# maps = pycolmap.incremental_mapping(database_path, image_dir, output_path)
+# maps[0].write(output_path)
+# # dense reconstruction
+# print("DENSE RECONSTRUCTION PROCESS:")
+# print("UNDISTORT IMAGES")
+# pycolmap.undistort_images(mvs_path, output_path, image_dir)
+print("PATCH MATCH STEREO")
+pycolmap.patch_match_stereo(mvs_path)  # requires compilation with CUDA
+print("STEREO FUSION")
+pycolmap.stereo_fusion(mvs_path / "dense.ply", mvs_path)
 
 
 @app.route("/hello")
@@ -26,24 +63,8 @@ def hello():
 
 
 @app.route("/genmodel")
-def colmap():
-    image_dir = Path("/var/travel-trails-files/images/gerrard/")
-    output_path = Path("/var/travel-trails-files/models/gerrard")
-
-    output_path.mkdir()
-    mvs_path = output_path / "mvs"
-    database_path = output_path / "database.db"
-
-    pycolmap.extract_features(database_path, image_dir)
-    pycolmap.match_exhaustive(database_path)
-    maps = pycolmap.incremental_mapping(database_path, image_dir, output_path)
-    maps[0].write(output_path)
-    # dense reconstruction
-    pycolmap.undistort_images(mvs_path, output_path, image_dir)
-    pycolmap.patch_match_stereo(mvs_path)  # requires compilation with CUDA
-    pycolmap.stereo_fusion(mvs_path / "dense.ply", mvs_path)
+def genmodel():
     return jsonify({"message": "Generated model successfully!"})
-    return jsonify({"message": "Hello, World!"}), 200
 
 
 @app.route("/upload_image/<location_id>", methods=["POST"])
