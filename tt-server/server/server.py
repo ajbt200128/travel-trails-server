@@ -1,8 +1,6 @@
-import subprocess
 import uuid
 from pathlib import Path
 
-import pycolmap
 from flask import Flask, jsonify, request
 from flask_migrate import Migrate
 from server.database import db
@@ -23,6 +21,7 @@ migrate = Migrate(app, db)
 
 # GENERATE MODEL
 # check for CUDA support
+"""
 result = subprocess.run(
     ["nvidia-smi"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
 )
@@ -30,6 +29,8 @@ print(result.stdout)
 result = subprocess.run(["nvcc", "--version"], stdout=subprocess.PIPE, text=True)
 print(result.stdout)
 
+"""
+"""
 print("Generating Model")
 image_dir = Path("/data/images/gerrard/")
 output_path = Path("/data/models/gerrard")
@@ -55,6 +56,7 @@ print("PATCH MATCH STEREO")
 pycolmap.patch_match_stereo(mvs_path)  # requires compilation with CUDA
 print("STEREO FUSION")
 pycolmap.stereo_fusion(mvs_path / "dense.ply", mvs_path)
+"""
 
 
 @app.route("/hello")
