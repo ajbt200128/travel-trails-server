@@ -23,7 +23,7 @@ def gen_location():
 
 def make_location():
     location = gen_location()
-    r = requests.post(URL + "/location/new", json=location)
+    r = requests.post(URL + "/location", json=location)
     print(r.json())
     assert r.status_code == 201
     return r.json()
@@ -36,7 +36,7 @@ def get_location(location_id):
 
 
 def delete_location(location_id):
-    r = requests.delete(URL + f"/location/{location_id}/delete")
+    r = requests.delete(URL + f"/location/{location_id}")
     assert r.status_code == 200
 
 
@@ -74,7 +74,7 @@ def upload_image(location_id):
 
 
 def delete_image(image_id):
-    r = requests.delete(URL + f"/image/{image_id}/delete")
+    r = requests.delete(URL + f"/image/{image_id}")
     assert r.status_code == 200
 
 

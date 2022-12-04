@@ -38,7 +38,7 @@ def get_locations():
     return jsonify([location.to_dict() for location in locations]), 200
 
 
-@app.route("/location/new", methods=["POST"])
+@app.route("/location/", methods=["POST"])
 def create_location():
     data = request.get_json()
     if data is None:
@@ -69,7 +69,16 @@ def get_location(location_id):
     return jsonify(location.to_dict()), 200
 
 
-@app.route("/location/<location_id>/delete", methods=["DELETE"])
+@app.route("/location/<location_id>/model", methods=["GET"])
+def get_location_model(location_id):
+    location = Location.query.get(location_id)
+    if location is None:
+        return jsonify({"message": "Location not found"}), 404
+
+    return send_file(location.model_path, mimetype="application/octet-stream"), 200
+
+
+@app.route("/location/<location_id>", methods=["DELETE"])
 def delete_location(location_id):
     location = Location.query.get(location_id)
     if location is None:
@@ -138,7 +147,7 @@ def get_image(image_id):
     return send_file(image.path), 200
 
 
-@app.route("/image/<image_id>/delete", methods=["DELETE"])
+@app.route("/image/<image_id>", methods=["DELETE"])
 def delete_image(image_id):
     image = Image.query.get(image_id)
     if image is None:

@@ -3,6 +3,7 @@ from pathlib import Path
 from geoalchemy2 import Geometry
 from geoalchemy2.shape import from_shape, to_shape
 from server.constants import UPLOAD_FOLDER
+from server.converter import convert_ply
 from server.database import db
 from shapely import geometry
 from shapely.geometry import Point, Polygon
@@ -18,6 +19,14 @@ class Location(db.Model):
     @property
     def images(self):
         return Image.query.filter_by(location_id=self.id).all()
+
+    @property
+    def point_cloud_path(self):
+        return Path(UPLOAD_FOLDER) / "models" / f"{self.id}.ply"
+
+    @property
+    def model_path(self):
+        return Path(UPLOAD_FOLDER) / "models" / f"{self.id}.gltf"
 
     @classmethod
     def from_points(cls, name, points, description, last_updated):
@@ -38,6 +47,9 @@ class Location(db.Model):
         point = Point(lat, lon)
         geometry = from_shape(point, srid=4326)
         return cls.query.filter(Location.geometry.ST_DWithin(geometry, radius)).all()
+
+    def convert(self):
+        convert_ply(self.point_cloud_path, self.model_path)
 
     def to_dict(self):
         return {
@@ -61,7 +73,7 @@ class Image(db.Model):
 
     @property
     def path(self):
-        return Path(f"{UPLOAD_FOLDER}/images/{self.location_id}/{self.name}")
+        return Path(UPLOAD_FOLDER) / "images" / f"{self.location_id}" / f"{self.name}"
 
     def to_dict(self):
         return {
