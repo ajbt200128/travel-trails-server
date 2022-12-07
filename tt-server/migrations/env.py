@@ -2,6 +2,7 @@ from logging.config import fileConfig
 
 from alembic import context
 from flask import current_app
+from geoalchemy2 import alembic_helpers
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -12,10 +13,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
 target_metadata = current_app.extensions["migrate"].db.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -41,6 +38,8 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        process_revision_directives=alembic_helpers.writer,
+        render_item=alembic_helpers.render_item,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -71,7 +70,8 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            process_revision_directives=process_revision_directives,
+            process_revision_directives=alembic_helpers.writer,
+            render_item=alembic_helpers.render_item,
             **current_app.extensions["migrate"].configure_args
         )
 
