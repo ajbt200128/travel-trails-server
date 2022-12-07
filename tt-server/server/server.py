@@ -4,6 +4,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_file
 from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
+from server.converter import convert_ply
 from server.database import db
 from server.models import Image, Location  # NOQA
 
@@ -38,7 +39,7 @@ def get_locations():
     return jsonify([location.to_dict() for location in locations]), 200
 
 
-@app.route("/location/", methods=["POST"])
+@app.route("/location", methods=["POST"])
 def create_location():
     data = request.get_json()
     if data is None:
@@ -75,6 +76,7 @@ def get_location_model(location_id):
     if location is None:
         return jsonify({"message": "Location not found"}), 404
 
+    convert_ply(location.point_cloud_path, location.model_path)
     return send_file(location.model_path, mimetype="application/octet-stream"), 200
 
 
