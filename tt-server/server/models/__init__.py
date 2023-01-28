@@ -1,1 +1,1 @@
-from .location import Location  # NOQA
+from .location import Image, Location  # NOQA
