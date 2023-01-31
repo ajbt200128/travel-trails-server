@@ -7,7 +7,7 @@ from server.constants import DATABASE_URL, UPLOAD_FOLDER
 from server.database import db
 from server.models import Image, Location  # NOQA
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="/data")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -38,7 +38,7 @@ def get_locations():
     return jsonify([location.to_dict() for location in locations]), 200
 
 
-@app.route("/location/", methods=["POST"])
+@app.route("/location", methods=["POST"])
 def create_location():
     data = request.get_json()
     if data is None:
@@ -48,6 +48,7 @@ def create_location():
     points = data.get("points")
     name = data.get("name")
     description = data.get("description")
+    print(data,points, name, description)
     if points is None or name is None or description is None:
         return jsonify({"message": "Invalid data"}), 400
     location = Location.from_points(
@@ -69,13 +70,14 @@ def get_location(location_id):
     return jsonify(location.to_dict()), 200
 
 
-@app.route("/location/<location_id>/model", methods=["GET"])
+@app.route("/location/<location_id>/model.gltf", methods=["GET"])
 def get_location_model(location_id):
     location = Location.query.get(location_id)
     if location is None:
         return jsonify({"message": "Location not found"}), 404
 
-    return send_file(location.model_path, mimetype="application/octet-stream"), 200
+    # open location.model_path and return it
+    return send_file(location.model_path, mimetype="text/json"), 200
 
 
 @app.route("/location/<location_id>", methods=["DELETE"])
