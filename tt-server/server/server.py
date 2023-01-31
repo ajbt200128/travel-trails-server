@@ -4,6 +4,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_file
 from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
+from server.converter import convert_ply
 from server.database import db
 from server.models import Image, Location  # NOQA
 
