@@ -52,10 +52,13 @@ class Location(db.Model):
         convert_ply(self.point_cloud_path, self.model_path)
 
     def to_dict(self):
+        location_geometry = geometry.mapping(to_shape(self.geometry))
         return {
             "id": self.id,
             "name": self.name,
-            "geometry": geometry.mapping(to_shape(self.geometry)),
+            "geometry": location_geometry,
+            "latitude": location_geometry["coordinates"][0][0][0],
+            "longitude": location_geometry["coordinates"][0][0][1],
             "description": self.description,
             "last_updated": self.last_updated,
         }
