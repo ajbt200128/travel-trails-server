@@ -1,13 +1,13 @@
 import time
 
-import open3d as o3d
+#import open3d as o3d
 
 
 def convert_ply(ply_path, output_path, display=False):
     start_time = time.time()
     pcd = o3d.io.read_point_cloud(ply_path)
-    pcd = pcd.uniform_down_sample(every_k_points=40)
-    cl, _ = pcd.remove_statistical_outlier(nb_neighbors=300, std_ratio=0.000001)
+    pcd = pcd.uniform_down_sample(every_k_points=10)
+    cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.000001)
     pcd = cl
     pcd.estimate_normals()
     with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as _:

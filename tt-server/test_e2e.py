@@ -95,6 +95,7 @@ if __name__ == "__main__":
     print("Test make location")
     location = make_location()
     location_id = location["id"]
+    print(location)
 
     print("Test get location")
     location = get_location(location_id)
