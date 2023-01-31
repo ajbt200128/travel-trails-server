@@ -1,3 +1,5 @@
+# Documentation
+
 ## How to use COLMAP:
 
 ### Setup
@@ -35,3 +37,35 @@ For Ubuntu host machines: `./setup-ubuntu.sh`. Seems to still work on unsupporte
   - Followed instructions in [COLMAP docker quick start](https://github.com/colmap/colmap/tree/dev/docker)
   - Used COLMAP CLI documented [here](https://colmap.github.io/cli.html)
   - Took 30-40 minutes to generate dense reconstruction from 100 images of Gerrard Hall (UNC CH)
+
+## Bash scripts
+
+**Input Directory Structure**
+
+- location_name
+  - images
+    - img01.jpg
+    - img02.jpg
+    - img03.jpg
+    - img04.jpg
+
+**Output Directory Structure**
+
+- location_name
+  - images
+    - img01.jpg
+    - img02.jpg
+    - img03.jpg
+  - split_images
+    - set01
+      - img01.jpg
+    - set02
+      - img02.jpg
+    - set03
+      - img03.jpg
+
+```
+./genmodel.sh /path/to/dir/of/dir/images
+```
+
+Generates a model starting from the smallest directory, to the largest directory
