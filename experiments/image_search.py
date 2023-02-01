@@ -107,9 +107,9 @@ lat = "38.889248"
 lon = "-77.050636"
 
 # get photo urls at coordinates
-photo_urls = flickr_search(flickr_api_key, lat, lon)
+# photo_urls = flickr_search(flickr_api_key, lat, lon)
 
-create_image_gallery(photo_urls)
+# create_image_gallery(photo_urls)
 photo_urls = [
     "https://live.staticflickr.com/65535/52276735605_b57fd06bc1.jpg",
     "https://live.staticflickr.com/65535/52266453747_0c6f249ea1.jpg",
@@ -122,3 +122,5 @@ photo_urls = [
     "https://live.staticflickr.com/65535/52257338106_fedfbaac80.jpg",
 ]
 print(photo_urls)
+
+create_image_gallery(photo_urls)
