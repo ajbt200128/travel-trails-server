@@ -69,26 +69,26 @@ def flickr_search(api_key, lat, lon):
 # create an HTML page to display images
 def create_image_gallery(photo_urls):
     # open the gallery page template and read as string
-    with open("gallery_template.html", "r") as gallery_template:
+    with open("gallery_template2.txt", "r") as gallery_template:
         gallery_html = gallery_template.read()
 
-        image_div = """
-        <div class="responsive">
-        <div class="gallery">
-            <a target="_blank" href="img_mountains.jpg">
-            <img src="{source}" alt="{alt}" width="600" height="400">
+        figure = """
+        <figure>
+            <a href="{href}">
+                <img title="{title}" src="{src}">
             </a>
-            <div class="desc">{desc}</div>
-        </div>
-        </div>
+            <figcaption>{figcaption}</figcaption>
+        </figure>
         """
 
-        divs = ""
+        gallery = ""
         for url in photo_urls:
-            divs += image_div.format(source=url, alt="alt", desc="desc")
+            gallery += figure.format(
+                href=url, title=url, src=url, figcaption="Lincoln Memorial"
+            )
 
         gallery_html = gallery_html.format(
-            description="test", responsive_image_divs=divs
+            title="Flickr Gallery", description="Generated with query", gallery=gallery
         )
         with open("image_gallery.html", "w") as image_gallery:
             image_gallery.write(gallery_html)
@@ -106,11 +106,8 @@ with open("api_keys.json") as f:
 lat = "38.889248"
 lon = "-77.050636"
 
-# get photo urls at coordinates
-# photo_urls = flickr_search(flickr_api_key, lat, lon)
 
-# create_image_gallery(photo_urls)
-photo_urls = [
+sample_urls = [
     "https://live.staticflickr.com/65535/52276735605_b57fd06bc1.jpg",
     "https://live.staticflickr.com/65535/52266453747_0c6f249ea1.jpg",
     "https://live.staticflickr.com/65535/52267237160_ea7410c3de.jpg",
@@ -121,6 +118,10 @@ photo_urls = [
     "https://live.staticflickr.com/65535/52260128385_90e629b841.jpg",
     "https://live.staticflickr.com/65535/52257338106_fedfbaac80.jpg",
 ]
-print(photo_urls)
 
+# get photo urls at coordinates
+photo_urls = flickr_search(flickr_api_key, lat, lon)
+
+# static urls for testing
+# photo_urls = sample_urls
 create_image_gallery(photo_urls)

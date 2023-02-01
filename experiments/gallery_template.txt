@@ -1,75 +1,94 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <style>
-      div.gallery {{
-          border: 1px solid #ccc;
-      }}
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
 
-      div.gallery:hover {{
-          border: 1px solid #777;
-      }}
+		<title>Image Gallery</title>
 
-      div.gallery img {{
-          width: 100%;
-          height: auto;
-      }}
+		<style type="text/css">
 
-      div.desc {{
-          padding: 15px;
-          text-align: center;
-      }}
+		#gallery {{
+			-webkit-column-count:5;
+			-webkit-column-gap:5px;
+			-moz-column-count:5;
+			-moz-column-gap:5px;
+			column-count:5;
+			column-gap:5px;
+			margin-top:2rem;
+		}}
 
-      * {{
-          box-sizing: border-box;
-      }}
 
-      .responsive {{
-          padding: 0 6px;
-          float: left;
-          width: 24.99999%;
-      }}
+	      figure {{
+			width: 100% !important;
+			height: auto !important;
+			margin: 0;
+			padding: 0;
+			margin-bottom:15px;
+	            display: inline-block;
+      	}}
 
-      @media only screen and (max-width: 700px) {{
-          .responsive {{
-              width: 49.99999%;
-              margin: 6px 0;
-          }}
-      }}
+	      figure:hover {{
+		      border: 1px solid #777;
+      	}}
 
-      @media only screen and (max-width: 500px) {{
-          .responsive {{
-              width: 100%;
-          }}
-      }}
+	      figure img {{
+		      width: 100%;
+		      height: auto;
+			margin-bottom:5px;
+      	}}
 
-      .clearfix:after {{
-          display: table;
-          clear: both;
-      }}
-    </style>
-  </head>
-  <body>
-    <h2>Image Gallery</h2>
+		figcaption {{
+		      text-decoration: none;
+			color: black;
+			padding: 2px;
+			text-align: center;
+		}}
+
+
+		@media (max-width: 1200px) {{
+			#gallery {{
+				-moz-column-count:    4;
+				-webkit-column-count: 4;
+				column-count:         4;
+			}}
+		}}
+		@media (max-width: 1000px) {{
+			#gallery {{
+				-moz-column-count:    3;
+				-webkit-column-count: 3;
+				column-count:         3;
+			}}
+		}}
+		@media (max-width: 800px) {{
+			#gallery {{
+				-moz-column-count:    2;
+				-webkit-column-count: 2;
+				column-count:         2;
+			}}
+		}}
+		@media (max-width: 400px) {{
+			#gallery {{
+				-moz-column-count:    1;
+				-webkit-column-count: 1;
+				column-count:         1;
+			}}
+		}}
+
+
+		</style>
+	</head>
+
+
+	<body>
+
+    <h1>{title}</h1>
 
     <h4>{description}</h4>
 
-    {responsive_image_divs}
+		<div id="gallery">
+        {gallery}
+		</div>
 
-    <div class="clearfix"></div>
 
-    <div style="padding: 6px">
-      <p>
-        This example use media queries to re-arrange the images on different
-        screen sizes: for screens larger than 700px wide, it will show four
-        images side by side, for screens smaller than 700px, it will show two
-        images side by side. For screens smaller than 500px, the images will
-        stack vertically (100%).
-      </p>
-      <p>
-        You will learn more about media queries and responsive web design later
-        in our CSS Tutorial.
-      </p>
-    </div>
-  </body>
+	</body>
 </html>
