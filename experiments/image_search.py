@@ -1,127 +1,41 @@
 import json
 
-import requests
+from image_tools import create_image_gallery, flickr_search
 
-# set a name for search
-search_name = "Lincoln Memorial"
+# lincoln memorial
+lincoln = {
+    "lat": 38.889248,
+    "lon": -77.050636,
+    "radius": 0.1,  # miles
+    "tag": "lincoln",
+    "title": "Lincoln Memorial",
+    "save": "image_gallery_lincoln.html",
+}
 
-# set bounding box coordinates
-lat_min = 38.88030972164946
-long_min = -77.0560455322265
-lat_max = 38.90529438572799
-long_max = -77.01982498168944
-
-
-"""
-Returns a list of images (250) at a lat, lon
-Requires Flickr API key
-"""
-
-
-def flickr_search(api_key, lat, lon):
-    photo_search_query = (
-        "https://www.flickr.com/services/rest/"
-        "?method=flickr.photos.search&api_key={}&lat={}&lon={}&"
-        "format=json&nojsoncallback=1"
-    )
-
-    photo_search_query = photo_search_query.format(api_key, lat, lon)
-    print(photo_search_query)
-
-    photo_ids = []
-    photo_urls = []
-
-    # do photo search at lat, lon
-    response = requests.get(photo_search_query)
-    photo_search_response = response.json()
-    # print(photo_search_response)
-
-    # check if valid response
-    if photo_search_response["stat"] == "fail":
-        print(photo_search_response["message"])
-    elif photo_search_response["stat"] == "ok":
-        # check if a positive number of images
-        if photo_search_response["photos"]["total"] > 0:
-
-            # retrieve image ids
-            print(len(photo_search_response["photos"]["photo"]))
-            for photo in photo_search_response["photos"]["photo"]:
-                photo_ids.append(str(photo["id"]))
-
-            print(photo_ids)
-            # query for image urls
-            for id in photo_ids:
-                url_query = (
-                    "https://www.flickr.com/services/rest/"
-                    "?method=flickr.photos.getSizes&api_key={}&photo_id={}"
-                    "&format=json&nojsoncallback=1"
-                )
-                url_query = url_query.format(api_key, id)
-
-                response = requests.get(url_query)
-                url_response = response.json()
-                # get the medium sized image (6)
-                photo_urls.append(url_response["sizes"]["size"][6]["source"])
-
-    return photo_urls
+# hippo
+hippo = {
+    "lat": 38.899534358379164,
+    "lon": -77.04674263500051,
+    "radius": 0.01,  # miles
+    "tag": "hippo",
+    "title": "River Horse Statue",
+    "save": "image_gallery_hippo.html",
+}
 
 
-# create an HTML page to display images
-def create_image_gallery(photo_urls):
-    # open the gallery page template and read as string
-    with open("gallery_template2.txt", "r") as gallery_template:
-        gallery_html = gallery_template.read()
+if __name__ == "__main__":
 
-        figure = """
-        <figure>
-            <a href="{href}">
-                <img title="{title}" src="{src}">
-            </a>
-            <figcaption>{figcaption}</figcaption>
-        </figure>
-        """
+    # read API key from file
+    with open("api_keys.json") as f:
+        keys = json.load(f)
+        if "flickr_api_key" in keys:
+            flickr_api_key = str(keys["flickr_api_key"])
 
-        gallery = ""
-        for url in photo_urls:
-            gallery += figure.format(
-                href=url, title=url, src=url, figcaption="Lincoln Memorial"
-            )
+    # get photo urls at coordinates
+    photo_urls = flickr_search(
+        api_key=flickr_api_key, parameters=hippo
+    )  # parameters = lincoln, hippo
 
-        gallery_html = gallery_html.format(
-            title="Flickr Gallery", description="Generated with query", gallery=gallery
-        )
-        with open("image_gallery.html", "w") as image_gallery:
-            image_gallery.write(gallery_html)
-
-        print("created image gallery")
-
-
-# read API key from file
-with open("api_keys.json") as f:
-    keys = json.load(f)
-    if "flickr_api_key" in keys:
-        flickr_api_key = str(keys["flickr_api_key"])
-
-# coordinates of Lincoln Memorial
-lat = "38.889248"
-lon = "-77.050636"
-
-
-sample_urls = [
-    "https://live.staticflickr.com/65535/52276735605_b57fd06bc1.jpg",
-    "https://live.staticflickr.com/65535/52266453747_0c6f249ea1.jpg",
-    "https://live.staticflickr.com/65535/52267237160_ea7410c3de.jpg",
-    "https://live.staticflickr.com/65535/52265774557_5f34b8303f.jpg",
-    "https://live.staticflickr.com/65535/52266741736_641dbb0394.jpg",
-    "https://live.staticflickr.com/65535/52266757223_cbf1cd75e5.jpg",
-    "https://live.staticflickr.com/65535/52260987403_f8a60ffa3b.jpg",
-    "https://live.staticflickr.com/65535/52260128385_90e629b841.jpg",
-    "https://live.staticflickr.com/65535/52257338106_fedfbaac80.jpg",
-]
-
-# get photo urls at coordinates
-photo_urls = flickr_search(flickr_api_key, lat, lon)
-
-# static urls for testing
-# photo_urls = sample_urls
-create_image_gallery(photo_urls)
+    # extract image ids
+    # use these static urls for testing without the api
+    create_image_gallery(photo_urls, parameters=hippo)  # parameters = lincoln, hippo
