@@ -1,3 +1,4 @@
+import json
 import datetime
 from pathlib import Path
 
@@ -6,6 +7,7 @@ from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
 from server.converter import convert_ply
 from server.database import db
+from server.image_tools import create_image_gallery, flickr_search
 from server.models import Image, Location  # NOQA
 
 app = Flask(__name__, static_folder="/data")
@@ -171,10 +173,8 @@ def get_image_data(image_id):
 # ===============================================================================
 # Dashboard
 # ===============================================================================
-@app.route("/", methods=["GET"])
-def home():
-    print("home request: display models, server status")
-
+@app.route("/dashboard", methods=["GET"])
+def dashboard():
     # Get the locations
     locations = Location.query.all()
     locations = [location.to_dict() for location in locations]
@@ -183,3 +183,44 @@ def home():
     print("printed locations")
 
     return render_template("index.html", locations=locations)
+
+
+@app.route("/dashboard/createmodel", methods=["GET","POST"])
+def dashboard_createmodel():
+    if request.method == 'GET':
+        return render_template("createmodel.html")
+
+    elif request.method == 'POST':
+
+        if "query" in request.form:
+            flickr_query={}
+            # TODO VALIDATE FORM FIELDS
+            flickr_query["latitude"] = request.form["flickr_latitude"]
+            flickr_query["longitude"] = request.form["flickr_longitude"]
+            flickr_query["radius"] = request.form["flickr_radius"]
+            flickr_query["tag"] = request.form["flickr_tag"]
+        
+        
+            try:
+                # read API key from file
+                with open("api_keys.json") as f:
+                    keys = json.load(f)
+                    if "flickr_api_key" in keys:
+                        flickr_api_key = str(keys["flickr_api_key"])
+                    else:
+                        raise ValueError("flickr_api_key not found in api_keys.json")
+            except Exception as e:
+                raise e
+
+            # get photo urls at query
+            photo_urls = flickr_search(
+                api_key=flickr_api_key, parameters=flickr_query
+            )
+
+            # extract image ids
+            photo_urls = create_image_gallery(photo_urls, parameters=flickr_query)
+
+            return render_template("createmodel.html", photo_urls=photo_urls, form_info=None)
+
+        elif "submit" in request.form: 
+            return render_template("createmodel.html")

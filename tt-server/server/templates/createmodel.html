@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Travel Trails</title>
+
+    <link rel="stylesheet" href="/static/gallery.css" type="text/css">
+  </head>
+
+  <body>
+    <h1>Create Model</h1>
+    <p>Create a model by either uploading images/video or using Flickr API</p>
+
+    <form action="/dashboard/createmodel" method="POST">
+      Name (Lincoln): <input type="text" name="name" required><br>
+      Description (Memorial): <input type="text" name="description"><br>
+      Latitude (38.889248): <input type="text" name="latitude"><br>
+      Longitude (-77.050636): <input type="text" name="longitude"><br>
+
+      <h3>Image/Video Upload</h3>
+      <p>Upload images/video to populate model. Accepts png, jpg, mp4</p>
+      Images: <input type="file" name="images" accept="image/png, image/jpg"><br>
+      Videos: <input type="file" name="videos" accept="video/mp4"><br>
+
+      <h3>Flickr Query</h3>
+      <p>Populate model using images from Flickr.</p>
+      Latitude (38.889248): <input type="text" name="flickr_latitude"><br>
+      Longitude (-77.050636): <input type="text" name="flickr_longitude"><br>
+      Radius (0.1): <input type="text" name="flickr_radius"><br>
+      Tag (lincoln): <input type="text" name="flickr_tag"><br>
+      <input type="submit" name="query" value="Query"><br>
+
+      {% if query_results %}
+        <input type="hidden" name="query_results" value="{{ query_results }}"> 
+        <div id="gallery">
+          {% for url in photo_urls %}
+            <figure>
+                <a href="{{ url }}">
+                    <img title="title" src="src">
+                </a>
+                <figcaption>figcaption</figcaption>
+            </figure>
+          {% endfor %}
+
+
+        </div>
+      {% endif %}
+
+      <input type="submit" name="create" value="Create">
+    </form>
+
+  </body>
+</html>
