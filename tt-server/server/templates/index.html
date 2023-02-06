@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Travel Trails</title>
+  </head>
+
+  <body>
+    <h1>Models:</h1>
+
+    <a href="/dashboard/addmodel"></a>
+    {% for location in locations %}
+    <div>
+      <p>id: {{ location.id }}</p>
+      <p>name: {{ location.name }}</p>
+      <p>geometry: {{ location.geometry }}</p>
+      <p>latitude: {{ location.latitude }}</p>
+      <p>longitude: {{ location.longitude }}</p>
+      <p>description: {{ location.description }}</p>
+      <p>last_updated: {{ location.last_updated }}</p>
+    </div>
+    {% endfor %}
+  </body>
+</html>

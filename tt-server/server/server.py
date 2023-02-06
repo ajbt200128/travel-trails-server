@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, render_template, request, send_file
 from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
 from server.converter import convert_ply
@@ -49,7 +49,7 @@ def create_location():
     points = data.get("points")
     name = data.get("name")
     description = data.get("description")
-    print(data,points, name, description)
+    print(data, points, name, description)
     if points is None or name is None or description is None:
         return jsonify({"message": "Invalid data"}), 400
     location = Location.from_points(
@@ -166,3 +166,20 @@ def get_image_data(image_id):
     if image is None:
         return jsonify({"message": "Image not found"}), 404
     return jsonify(image.to_dict()), 200
+
+
+# ===============================================================================
+# Dashboard
+# ===============================================================================
+@app.route("/", methods=["GET"])
+def home():
+    print("home request: display models, server status")
+
+    # Get the locations
+    locations = Location.query.all()
+    locations = [location.to_dict() for location in locations]
+
+    print(locations)
+    print("printed locations")
+
+    return render_template("index.html", locations=locations)
