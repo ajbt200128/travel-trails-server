@@ -34,6 +34,7 @@
       {% if query_results %}
         <input type="hidden" name="query_results" value="{{ query_results }}"> 
         <div id="gallery">
+
           {% for url in photo_urls %}
             <figure>
                 <a href="{{ url }}">
@@ -42,7 +43,6 @@
                 <figcaption>figcaption</figcaption>
             </figure>
           {% endfor %}
-
 
         </div>
       {% endif %}

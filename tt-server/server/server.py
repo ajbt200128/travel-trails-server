@@ -212,15 +212,25 @@ def dashboard_createmodel():
             except Exception as e:
                 raise e
 
+            try:
+                # read API key from file
+                with open("/data/api_keys.json") as f:
+                    keys = json.load(f)
+                    if "flickr_api_key" in keys:
+                        flickr_api_key = str(keys["flickr_api_key"])
+                    else:
+                        raise ValueError("flickr_api_key not found in api_keys.json")
+            except Exception as e:
+                raise e
+
+
+
             # get photo urls at query
             photo_urls = flickr_search(
                 api_key=flickr_api_key, parameters=flickr_query
             )
 
-            # extract image ids
-            photo_urls = create_image_gallery(photo_urls, parameters=flickr_query)
-
-            return render_template("createmodel.html", photo_urls=photo_urls, form_info=None)
+            return render_template("createmodel.html", query_results=request.form, photo_urls=photo_urls)
 
         elif "submit" in request.form: 
             return render_template("createmodel.html")
