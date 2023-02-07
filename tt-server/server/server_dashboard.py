@@ -65,6 +65,7 @@ def dashboard_createmodel():
 
             print("photo_urls")
             print(photo_urls)
+            
             return render_template("createmodel.html", query_results=request.form, photo_urls=photo_urls)
 
         elif "submit" in request.form: 

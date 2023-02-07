@@ -25,11 +25,11 @@
 
       <h3>Flickr Query</h3>
       <p>Populate model using images from Flickr.</p>
-      Latitude (38.889248): <input type="text" name="flickr_latitude"><br>
-      Longitude (-77.050636): <input type="text" name="flickr_longitude"><br>
-      Radius (0.1): <input type="text" name="flickr_radius"><br>
-      Tag (lincoln): <input type="text" name="flickr_tag"><br>
-      <input type="submit" name="query" value="Query"><br>
+      Lat: <input type="text" name="flickr_latitude">
+      Lon: <input type="text" name="flickr_longitude">
+      Radius (miles): <input type="text" name="flickr_radius">
+      Tags (csv): <input type="text" name="flickr_tag">
+      <input type="submit" name="query" value="Query">
 
       {% if query_results %}
       <p>Click to remove image from dataset.</p>
@@ -37,12 +37,15 @@
         <div id="gallery">
 
           {% for url in photo_urls %}
+          <div class="cont-checkbox">
             <figure>
-                <!-- <a href="{{ url }}"> -->
-                    <img title="{{ url }}" src="{{ url }}">
-                <!-- </a> -->
-                <!-- <figcaption>{{ url }}</figcaption> -->
+            <input type="checkbox" id="myCheckbox-{{ loop.index0 }}" checked/>
+            <label for="myCheckbox-{{ loop.index0 }}">
+              <img src="{{ url }}"/>
+            </label>
             </figure>
+          </div>
+
           {% endfor %}
 
         </div>
