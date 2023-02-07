@@ -17,7 +17,7 @@ lincoln = {
 hippo = {
     "latitude": 38.899534358379164,
     "longitude": -77.04674263500051,
-    "radius": 0.01,  # miles
+    "radius": 0.5,  # miles
     "tag": "hippo",
     "title": "River Horse Statue",
     "save": "image_gallery_hippo.html",
@@ -39,7 +39,6 @@ if __name__ == "__main__":
         raise e
 
     print(flickr_api_key)
-    quit()
     # get photo urls at coordinates
     photo_urls = flickr_search(
         api_key=flickr_api_key, parameters=parameters

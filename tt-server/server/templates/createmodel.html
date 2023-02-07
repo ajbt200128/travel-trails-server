@@ -5,7 +5,7 @@
 
     <title>Travel Trails</title>
 
-    <link rel="stylesheet" href="/static/gallery.css" type="text/css">
+    <link rel="stylesheet" href="../static/css/gallery.css">
   </head>
 
   <body>
@@ -32,15 +32,16 @@
       <input type="submit" name="query" value="Query"><br>
 
       {% if query_results %}
+      <p>Click to remove image from dataset.</p>
         <input type="hidden" name="query_results" value="{{ query_results }}"> 
         <div id="gallery">
 
           {% for url in photo_urls %}
             <figure>
-                <a href="{{ url }}">
-                    <img title="title" src="src">
-                </a>
-                <figcaption>figcaption</figcaption>
+                <!-- <a href="{{ url }}"> -->
+                    <img title="{{ url }}" src="{{ url }}">
+                <!-- </a> -->
+                <!-- <figcaption>{{ url }}</figcaption> -->
             </figure>
           {% endfor %}
 

@@ -29,6 +29,7 @@ def flickr_search(api_key, parameters):
     )
 
     photo_search_query = photo_search_query.format(api_key, lat, lon, radius, tag)
+    print(photo_search_query)
 
     photo_ids = []
     photo_urls = []
@@ -51,21 +52,8 @@ def flickr_search(api_key, parameters):
                 )
             )
             for photo in photo_search_response["photos"]["photo"]:
-                photo_ids.append(str(photo["id"]))
-
-            # query for image urls
-            for id in photo_ids:
-                url_query = (
-                    "https://www.flickr.com/services/rest/"
-                    "?method=flickr.photos.getSizes&api_key={}&photo_id={}"
-                    "&format=json&nojsoncallback=1"
-                )
-                url_query = url_query.format(api_key, id)
-
-                response = requests.get(url_query)
-                url_response = response.json()
-                # get the medium sized image (6)
-                photo_urls.append(url_response["sizes"]["size"][6]["source"])
+                str(photo["id"])
+                photo_urls.append("https://live.staticflickr.com/{server}/{id}_{secret}.jpg".format(server=photo["server"], id=photo["id"], secret=photo["secret"]))
 
     return photo_urls
 
