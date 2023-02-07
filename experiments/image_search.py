@@ -1,3 +1,4 @@
+import os
 import json
 
 from image_tools import create_image_gallery, flickr_search

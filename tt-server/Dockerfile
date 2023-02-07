@@ -16,6 +16,7 @@ COPY server ./server
 COPY migrations ./migrations
 COPY README.md ./
 COPY entrypoint.sh ./
+COPY api_keys.json ./
 
 RUN poetry install --no-dev
 

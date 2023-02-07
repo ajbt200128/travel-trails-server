@@ -1,3 +1,4 @@
+import os
 import json
 import datetime
 from pathlib import Path
@@ -200,6 +201,9 @@ def dashboard_createmodel():
             flickr_query["radius"] = request.form["flickr_radius"]
             flickr_query["tag"] = request.form["flickr_tag"]
         
+            print("cwd: " + os.getcwd())
+            ls_str = ' '.join([str(elem) for elem in os.listdir()])
+            print("ls: " + ls_str)
         
             try:
                 # read API key from file
