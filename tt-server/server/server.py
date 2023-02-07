@@ -201,21 +201,6 @@ def dashboard_createmodel():
             flickr_query["radius"] = request.form["flickr_radius"]
             flickr_query["tag"] = request.form["flickr_tag"]
         
-            print("cwd: " + os.getcwd())
-            ls_str = ' '.join([str(elem) for elem in os.listdir()])
-            print("ls: " + ls_str)
-        
-            try:
-                # read API key from file
-                with open("api_keys.json") as f:
-                    keys = json.load(f)
-                    if "flickr_api_key" in keys:
-                        flickr_api_key = str(keys["flickr_api_key"])
-                    else:
-                        raise ValueError("flickr_api_key not found in api_keys.json")
-            except Exception as e:
-                raise e
-
             try:
                 # read API key from file
                 with open("/data/api_keys.json") as f:
@@ -224,9 +209,11 @@ def dashboard_createmodel():
                         flickr_api_key = str(keys["flickr_api_key"])
                     else:
                         raise ValueError("flickr_api_key not found in api_keys.json")
+            except IOError as e:
+                print("Add api_keys.json to /var/travel-trails-files")
+                raise e
             except Exception as e:
                 raise e
-
 
 
             # get photo urls at query
