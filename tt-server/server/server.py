@@ -10,6 +10,7 @@ from server.converter import convert_ply
 from server.database import db
 from server.image_tools import create_image_gallery, flickr_search
 from server.models import Image, Location  # NOQA
+from server.utils import *
 
 app = Flask(__name__, static_folder="/data")
 
@@ -192,6 +193,55 @@ def dashboard_createmodel():
         return render_template("createmodel.html")
 
     elif request.method == 'POST':
+        # All fields are required
+        name = request.form["name"]
+        desc = request.form["description"]
+        lat = request.form["latitude"]
+        lon = request.form["longitude"]
+
+        # Entry validation
+        valid = True
+        if (not isinstance(name,str) or not (name and name.strip())):
+            # name is not a string or it is none, empty, or blank
+            valid = False
+
+        if (not isinstance(desc,str) or not (desc and desc.strip())):
+            # desc is not a string or it is none, empty, or blank
+            valid = False
+
+        if (not is_float(lat) or
+            not (float(lat) >= 0.0 and float(lat) <= 180.0)):
+            # lat is not a float or not in valid range [0, 180]
+            valid = False
+
+        if (not is_float(lon) or
+            not (lon >= 0.0 and lon <= 180.0)):
+            # lon is not a float or not in valid range [0, 180]
+            valid = False
+
+        if not valid:
+            return render_template("createmodel.html",msg="Error creating model.")
+        else:
+            # Add the location
+            
+            # NOTE: This is just chopped from /locations route
+            location = Location.from_points(
+                name=name,
+                points=[(lat,lon)],
+                description=desc,
+                last_updated=datetime.datetime.now(),
+            )
+            db.session.add(location)
+            db.session.commit()
+
+            return render_template("createmodel.html",msg="Created model successfully.")
+
+@app.route("/dashboard/addmedia", methods=["GET","POST"])
+def dashboard_addmedia():
+    if request.method == 'GET':
+        return render_template("addmedia.html")
+
+    elif request.method == 'POST':
 
         if "query" in request.form:
             flickr_query={}
@@ -225,3 +275,4 @@ def dashboard_createmodel():
 
         elif "submit" in request.form: 
             return render_template("createmodel.html")
+

@@ -18,6 +18,7 @@
       <p>lat, long: ({{ location.latitude }},{{ location.longitude }})</p>
       <p>last_updated: {{ location.last_updated }}</p>
       <p>geometry: {{ location.geometry }}</p>
+      <a href="/dashboard/addmedia/{{location.id}}">Add media</a>
     </div>
     {% endfor %}
   </body>

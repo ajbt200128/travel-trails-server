@@ -10,49 +10,15 @@
 
   <body>
     <h1>Create Model</h1>
-    <p>Create a model by either uploading images/video or using Flickr API</p>
 
     <form action="/dashboard/createmodel" method="POST">
-      Name (Lincoln): <input type="text" name="name" required><br>
-      Description (Memorial): <input type="text" name="description"><br>
-      Latitude (38.889248): <input type="text" name="latitude"><br>
-      Longitude (-77.050636): <input type="text" name="longitude"><br>
-
-      <h3>Image/Video Upload</h3>
-      <p>Upload images/video to populate model. Accepts png, jpg, mp4</p>
-      Images: <input type="file" name="images" accept="image/png, image/jpg"><br>
-      Videos: <input type="file" name="videos" accept="video/mp4"><br>
-
-      <h3>Flickr Query</h3>
-      <p>Populate model using images from Flickr.</p>
-      Lat: <input type="text" name="flickr_latitude">
-      Lon: <input type="text" name="flickr_longitude">
-      Radius (miles): <input type="text" name="flickr_radius">
-      Tags (csv): <input type="text" name="flickr_tag">
-      <input type="submit" name="query" value="Query">
-
-      {% if query_results %}
-      <p>Click to remove image from dataset.</p>
-        <input type="hidden" name="query_results" value="{{ query_results }}"> 
-        <div id="gallery">
-
-          {% for url in photo_urls %}
-          <div class="cont-checkbox">
-            <figure>
-            <input type="checkbox" id="myCheckbox-{{ loop.index0 }}" checked/>
-            <label for="myCheckbox-{{ loop.index0 }}">
-              <img src="{{ url }}"/>
-            </label>
-            </figure>
-          </div>
-
-          {% endfor %}
-
-        </div>
-      {% endif %}
-
+      Name: <input type="text" name="name" required><br>
+      Description: <input type="text" name="description" required><br>
+      Latitude: <input type="number" name="latitude" min="0" max="180" required><br>
+      Longitude: <input type="number" name="longitude" min="0" max="180" required><br>
       <input type="submit" name="create" value="Create">
     </form>
-
+    <p>{{ msg }}</p>
+    <a href="/dashboard">Return to dashboard</a>
   </body>
 </html>
