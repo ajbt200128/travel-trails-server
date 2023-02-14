@@ -1,6 +1,7 @@
 import os
 import json
 import datetime
+import requests
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_file
@@ -12,7 +13,7 @@ from server.image_tools import create_image_gallery, flickr_search
 from server.models import Image, Location  # NOQA
 from server.utils import *
 
-app = Flask(__name__, static_folder="/data")
+app = Flask(__name__, static_folder="static")
 
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -181,8 +182,8 @@ def dashboard():
     locations = Location.query.all()
     locations = [location.to_dict() for location in locations]
 
-    print(locations)
-    print("printed locations")
+    #print(locations)
+    #print("printed locations")
 
     return render_template("index.html", locations=locations)
 
@@ -203,31 +204,50 @@ def dashboard_createmodel():
         valid = True
         if (not isinstance(name,str) or not (name and name.strip())):
             # name is not a string or it is none, empty, or blank
+            print("Error parsing name:")
+            print(str(name))
             valid = False
 
         if (not isinstance(desc,str) or not (desc and desc.strip())):
             # desc is not a string or it is none, empty, or blank
+            print("Error parsing desc:")
+            print(str(desc))
             valid = False
 
         if (not is_float(lat) or
-            not (float(lat) >= 0.0 and float(lat) <= 180.0)):
+            not (float(lat) >= -180.0 and float(lat) <= 180.0)):
             # lat is not a float or not in valid range [0, 180]
+            print("Error parsing lat:")
+            print(str(lon))
             valid = False
 
         if (not is_float(lon) or
-            not (lon >= 0.0 and lon <= 180.0)):
+            not (float(lon) >= -180.0 and float(lon) <= 180.0)):
             # lon is not a float or not in valid range [0, 180]
+            print("Error parsing lon:")
+            print(str(lon))
             valid = False
 
         if not valid:
             return render_template("createmodel.html",msg="Error creating model.")
         else:
             # Add the location
+
+            # Compute a square around the center lat, lon
+            radius = 0.0001 # about 60 ft
+            lat = float(lat)
+            lon = float(lon)
+            points = [
+                (lat - radius, lon - radius),
+                (lat - radius, lon + radius),
+                (lat + radius, lon + radius),
+                (lat + radius, lon - radius),
+            ]
             
             # NOTE: This is just chopped from /locations route
             location = Location.from_points(
                 name=name,
-                points=[(lat,lon)],
+                points=points,
                 description=desc,
                 last_updated=datetime.datetime.now(),
             )
@@ -236,10 +256,16 @@ def dashboard_createmodel():
 
             return render_template("createmodel.html",msg="Created model successfully.")
 
-@app.route("/dashboard/addmedia", methods=["GET","POST"])
-def dashboard_addmedia():
+@app.route("/dashboard/addmedia/<location_id>", methods=["GET","POST"])
+def dashboard_addmedia(location_id):
+    location = Location.query.get(location_id)
+    if location is None:
+        return render_template("addmedia.html",msg="Invalid location id.")
+    else:
+        location = location.to_dict()
+
     if request.method == 'GET':
-        return render_template("addmedia.html")
+        return render_template("addmedia.html",location=location)
 
     elif request.method == 'POST':
 
@@ -252,7 +278,7 @@ def dashboard_addmedia():
             flickr_query["tag"] = request.form["flickr_tag"]
         
             try:
-                # read API key from file
+                # Read API key from file
                 with open("/data/api_keys.json") as f:
                     keys = json.load(f)
                     if "flickr_api_key" in keys:
@@ -266,13 +292,58 @@ def dashboard_addmedia():
                 raise e
 
 
-            # get photo urls at query
+            # Get photo urls at query
             photo_urls = flickr_search(
                 api_key=flickr_api_key, parameters=flickr_query
             )
 
-            return render_template("createmodel.html", query_results=request.form, photo_urls=photo_urls)
+            return render_template("addmedia.html",location=location, msg="Query was pressed", query_results=flickr_query, photo_urls=photo_urls)
 
-        elif "submit" in request.form: 
-            return render_template("createmodel.html")
+        elif "add" in request.form: 
+
+            # Check if image was submitted
+            image = request.files["image"]
+            if (image.filename and image.filename != ""):
+                print("Received image")
+                print(image.filename)
+
+                # Create a path
+                path = Path(UPLOAD_FOLDER) / "raw" / str(location["id"]) / "images" / str(image.filename)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                image.save(path)
+
+            # Check if video was submitted
+            video = request.files["video"]
+            if (video.filename and video.filename != ""):
+                print("Received video")
+                print(video.filename)
+
+                # Create a path
+                path = Path(UPLOAD_FOLDER) / "raw" / str(location["id"]) / "videos" / str(video.filename)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                video.save(path)
+
+            # Check if Flickr data
+            if ("photo_urls" in request.form and request.form["photo_urls"] != ""):
+                print(request.form["photo_urls"])
+                photo_urls = request.form["photo_urls"]
+                photo_urls = [i.strip() for i in request.form["photo_urls"][1:-1].replace("'","").split(',')]
+                print("Photos selected: {}".format(len(photo_urls)))
+
+                # Loop over each photo url and save it to path
+                # TODO: Checkboxes are not unchecked
+                for url in photo_urls:
+
+                    # Write to file
+                    filename = url.split("/")[-1]
+                    path = Path(UPLOAD_FOLDER) / "raw" / str(location["id"]) / "images" / filename
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(path, 'wb') as f:
+                        print("Writing to {}".format(str(path)))
+                        f.write(requests.get(url).content)
+
+            # Download the media to the raw directory
+            return render_template("addmedia.html", msg="Media was successfully added to server", location=location)
+        
+        return render_template("addmedia.html", msg="Error, POST form invalid", location=location)
 

@@ -17,6 +17,7 @@ COPY migrations ./migrations
 COPY README.md ./
 COPY entrypoint.sh ./
 
+
 RUN poetry install --no-dev
 
 
