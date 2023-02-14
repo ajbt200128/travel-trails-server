@@ -58,6 +58,11 @@ figcaption {
   }
 }
 
+/*
+Checkbox style
+https://stackblitz.com/edit/js-gh5kdp?file=index.html&file=style.css
+*/
+
 * {
   --transition: 0.15s;
   --border-radius: 0;

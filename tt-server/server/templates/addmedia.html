@@ -39,7 +39,7 @@
           {% for url in photo_urls %}
           <div class="cont-checkbox">
             <figure>
-            <input type="checkbox" id="myCheckbox-{{ loop.index0 }}" checked/>
+            <input type="checkbox" id="myCheckbox-{{ loop.index0 }}" name="myCheckbox-{{ loop.index0 }}" value="{{ url }}" checked/>
             <label for="myCheckbox-{{ loop.index0 }}">
               <img src="{{ url }}"/>
             </label>

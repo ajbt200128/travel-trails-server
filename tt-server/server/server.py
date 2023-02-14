@@ -323,24 +323,27 @@ def dashboard_addmedia(location_id):
                 path.parent.mkdir(parents=True, exist_ok=True)
                 video.save(path)
 
-            # Check if Flickr data
+            # Check if images selected from Flickr data
+            #selected_images = request.form.getlist("selected_images")
+            #print(selected_images)
             if ("photo_urls" in request.form and request.form["photo_urls"] != ""):
-                print(request.form["photo_urls"])
+
                 photo_urls = request.form["photo_urls"]
                 photo_urls = [i.strip() for i in request.form["photo_urls"][1:-1].replace("'","").split(',')]
-                print("Photos selected: {}".format(len(photo_urls)))
+                # print("Photos selected: {}".format(len(photo_urls)))
 
-                # Loop over each photo url and save it to path
-                # TODO: Checkboxes are not unchecked
-                for url in photo_urls:
-
-                    # Write to file
-                    filename = url.split("/")[-1]
-                    path = Path(UPLOAD_FOLDER) / "raw" / str(location["id"]) / "images" / filename
-                    path.parent.mkdir(parents=True, exist_ok=True)
-                    with open(path, 'wb') as f:
-                        print("Writing to {}".format(str(path)))
-                        f.write(requests.get(url).content)
+                # Loop over each photo and save it to path if it is checked
+                for i, url in enumerate(photo_urls):
+                    checkbox = "myCheckbox-{}".format(i)
+                    value = request.form.get(checkbox)
+                    if (value):
+                        # Write to file
+                        filename = url.split("/")[-1]
+                        path = Path(UPLOAD_FOLDER) / "raw" / str(location["id"]) / "images" / filename
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        with open(path, 'wb') as f:
+                            print("Writing to {}".format(str(path)))
+                            f.write(requests.get(url).content)
 
             # Download the media to the raw directory
             return render_template("addmedia.html", msg="Media was successfully added to server", location=location)
