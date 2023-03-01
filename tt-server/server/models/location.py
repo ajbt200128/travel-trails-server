@@ -22,11 +22,15 @@ class Location(db.Model):
 
     @property
     def point_cloud_path(self):
-        return Path(UPLOAD_FOLDER) / "models" / f"{self.id}.ply"
+        return Path(UPLOAD_FOLDER) / "images" / f"{self.id}" / "dense" / "fused" / "0" / "fused.ply"
 
     @property
     def model_path(self):
         return Path(UPLOAD_FOLDER) / "models" / f"{self.id}.gltf"
+
+    @property
+    def heatmap_path(self):
+        return Path(UPLOAD_FOLDER) / "heatmaps" / f"{self.id}.gltf"
 
     @classmethod
     def from_points(cls, name, points, description, last_updated):
@@ -35,12 +39,15 @@ class Location(db.Model):
         points = [Point(p[0], p[1]) for p in points]
         polygon = Polygon([[p.x, p.y] for p in points])
         geometry = from_shape(polygon, srid=4326)
-        return cls(
+        location =  cls(
             name=name,
             geometry=geometry,
             description=description,
             last_updated=last_updated,
         )
+        db.session.add(location)
+        db.session.commit()
+        return location
 
     @classmethod
     def get_nearby(cls, lat, lon, radius):

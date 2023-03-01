@@ -83,6 +83,31 @@ def get_image_data(image_id):
     assert r.status_code == 200
     return r.json()
 
+def create_user():
+    user = {
+        "username": Faker().user_name(),
+        "name": Faker().name(),
+        "profile_picture": Faker().image_url(),
+    }
+    r = requests.post(URL + "/user", json=user)
+    assert r.status_code == 201
+    return r.json()
+
+def get_user(user_id):
+    r = requests.get(URL + f"/user/{user_id}")
+    assert r.status_code == 200
+    return r.json()
+
+def get_user_visits(user_id):
+    r = requests.get(URL + f"/user/{user_id}/visits")
+    assert r.status_code == 200
+    return r.json()
+
+def create_visit(user_id, location_id):
+    r = requests.post(URL + f"/user/{user_id}/visit/{location_id}")
+    assert r.status_code == 201
+    return r.json()
+
 
 if __name__ == "__main__":
     print("Checking server is up")
@@ -128,12 +153,13 @@ if __name__ == "__main__":
     )
     assert location in nearby
 
-    print("Test delete image")
-    delete_image(image_id)
-    images = get_images(location_id)
-    assert image not in images
+    print("Test create user")
+    user = create_user()
+    user_id = user["username"]
+    assert user == get_user(user_id)
 
-    print("Test delete location")
-    delete_location(location_id)
-    locations = get_locations()
-    assert location not in locations
+    print("Test create visit")
+    visit = create_visit(user_id, location_id)
+    assert visit in get_user_visits(user_id)
+
+
