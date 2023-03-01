@@ -6,7 +6,7 @@ from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
 from server.converter import convert_ply
 from server.database import db
-from server.models import Image, Location  # NOQA
+from server.models import Image, Location, User, UserVisit  # NOQA
 
 app = Flask(__name__, static_folder="/data")
 
@@ -80,6 +80,14 @@ def get_location_model(location_id):
     # open location.model_path and return it
     return send_file(location.model_path, mimetype="text/json"), 200
 
+@app.route("/location/<location_id>/heatmap.gltf", methods=["GET"])
+def get_location_model_heatmap(location_id):
+    location = Location.query.get(location_id)
+    if location is None:
+        return jsonify({"message": "Location not found"}), 404
+
+    # open location.model_path and return it
+    return send_file(location.model_path, mimetype="text/json"), 200
 
 @app.route("/location/<location_id>", methods=["DELETE"])
 def delete_location(location_id):
@@ -111,6 +119,16 @@ def nearby():
         radius = 1000
     locations = Location.get_nearby(float(lat), float(lon), float(radius))
     return jsonify([location.to_dict() for location in locations]), 200
+
+
+@app.route("/location/<location_id>/convert", methods=["POST"])
+def convert_location(location_id):
+    location = Location.query.get(location_id)
+    if location is None:
+        return jsonify({"message": "Location not found"}), 404
+    convert_ply(location.ply_path, location.model_path)
+    convert_ply(location.ply_path, location.heatmap_path, heatmap=0.035)
+    return jsonify({"message": "Location converted"}), 200
 
 
 # ===============================================================================
@@ -166,3 +184,45 @@ def get_image_data(image_id):
     if image is None:
         return jsonify({"message": "Image not found"}), 404
     return jsonify(image.to_dict()), 200
+
+
+# ===============================================================================
+# User API
+# ===============================================================================
+
+@app.route("/user", methods=["POST"])
+def create_user():
+    data = request.get_json()
+    if data is None:
+        return jsonify({"message": "Invalid data"}), 400
+    username = data.get("username")
+    name = data.get("name")
+    profile_picture = data.get("profile_picture")
+    user = User.create(username=username, name=name, profile_picture=profile_picture)
+
+    return jsonify(user.to_dict()), 201
+
+@app.route("/user/<username>", methods=["GET"])
+def get_user(username):
+    user = User.query.get(username)
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
+    return jsonify(user.to_dict()), 200
+
+@app.route('/user/<username>/visits')
+def get_user_visits(username):
+    user = User.query.get(username)
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
+    return jsonify(user.visits), 200
+
+@app.route("/user/<username>/visit/<location_id>", methods=["POST"])
+def create_visit(username, location_id):
+    user = User.query.get(username)
+    if user is None:
+        return jsonify({"message": "User not found"}), 404
+    location = Location.query.get(location_id)
+    if location is None:
+        return jsonify({"message": "Location not found"}), 404
+    visit = UserVisit.create(username=username, location_id=location_id)
+    return jsonify(visit.to_dict()), 201
