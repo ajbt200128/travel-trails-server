@@ -367,6 +367,12 @@ def dashboard_addmedia(location_id):
         
         return render_template("addmedia.html", msg="Error, POST form invalid", location=location)
 
+@app.route("/dashboard/generatemodel/<location_id>", methods=["GET"])
+def dashboard_generatemodel(location_id):
+    pass
+
+
+# ===============================================================================
 # User API
 # ===============================================================================
 
