@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Travel Trails</title>
+
+    <link rel="stylesheet" href="../../static/css/gallery.css">
+  </head>
+
+  <body>
+    {{ msg }}
+    <h1>Add media</h1>
+    <h1>{{ location.name }}</h1>
+    <h2>{{ location.description }}</h2>
+    <p>Either upload images/video or add images queried from the Flickr API</p>
+
+    <form action="/dashboard/addmedia/{{ location.id }}" method="POST" enctype="multipart/form-data">
+
+      <h3>Image/Video Upload</h3>
+
+      <p>Upload images/video to populate model. Accepts png, jpg, mp4</p>
+      Images: <input type="file" name="image" accept="image/png, image/jpg"><br>
+      Videos: <input type="file" name="video" accept="video/mp4"><br>
+
+      <h3>Flickr Query</h3>
+      <p>Populate model using images from Flickr.</p>
+      Lat: <input type="text" name="flickr_latitude" value="{% if query_results %}{{ query_results.latitude }}{% else %}{{ location.latitude }}{% endif %}">
+      Lon: <input type="text" name="flickr_longitude" value="{% if query_results %}{{ query_results.longitude }}{% else %}{{ location.latitude }}{% endif %}">
+      Radius (miles): <input type="text" name="flickr_radius" value="{% if query_results %}{{ query_results.radius }}{% else %}0.5{% endif %}">
+      Tags (csv): <input type="text" name="flickr_tag" value ="{% if query_results %}{{ query_results.tag }}{% endif %}">
+      <input type="submit" name="query" value="Query">
+
+      {% if photo_urls %}
+      <p>Click to remove image from dataset.</p>
+        <input type="hidden" name="photo_urls" value="{{ photo_urls }}"> 
+        <div id="gallery">
+
+          {% for url in photo_urls %}
+          <div class="cont-checkbox">
+            <figure>
+            <input type="checkbox" id="myCheckbox-{{ loop.index0 }}" name="myCheckbox-{{ loop.index0 }}" value="{{ url }}" checked/>
+            <label for="myCheckbox-{{ loop.index0 }}">
+              <img src="{{ url }}"/>
+            </label>
+            </figure>
+          </div>
+          {% endfor %}
+
+        </div>
+      {% endif %}
+
+      <input type="submit" name="add" value="Add to model">
+    </form>
+
+    <a href="/dashboard">Return to dashboard</a>
+
+  </body>
+</html>

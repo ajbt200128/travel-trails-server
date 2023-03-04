@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Travel Trails</title>
+
+    <link rel="stylesheet" href="../static/css/gallery.css">
+  </head>
+
+  <body>
+    <h1>Create Model</h1>
+
+    <form action="/dashboard/createmodel" method="POST">
+      Name: <input type="text" name="name" required><br>
+      Description: <input type="text" name="description" required><br>
+      Latitude: <input type="text" name="latitude" required><br>
+      Longitude: <input type="text" name="longitude" required><br>
+      <input type="submit" name="create" value="Create">
+    </form>
+    <p>{{ msg }}</p>
+    <a href="/dashboard">Return to dashboard</a>
+  </body>
+</html>
