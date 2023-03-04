@@ -109,6 +109,7 @@ class Location(db.Model):
             "longitude": location_geometry["coordinates"][0][0][1],
             "description": self.description,
             "last_updated": self.last_updated,
+            "model_image_url": self.model_image_url,
         }
 
 
