@@ -115,7 +115,7 @@ def get_location_model_heatmap(location_id):
         return jsonify({"message": "Location not found"}), 404
 
     # open location.model_path and return it
-    return send_file(location.model_path, mimetype="text/json"), 200
+    return send_file(location.heatmap_path, mimetype="text/json"), 200
 
 @app.route("/location/<location_id>", methods=["DELETE"])
 def delete_location(location_id):
