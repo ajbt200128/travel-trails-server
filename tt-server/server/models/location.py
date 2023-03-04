@@ -23,7 +23,7 @@ class Location(db.Model):
 
     @property
     def point_cloud_path(self):
-        return Path(UPLOAD_FOLDER) / "images" / f"{self.id}" / "dense" / "fused" / "0" / "fused.ply"
+        return Path(UPLOAD_FOLDER) / "images" / f"{self.id}" / "dense" / "0" / "fused.ply"
 
     @property
     def model_path(self):
