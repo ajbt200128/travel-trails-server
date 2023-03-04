@@ -31,6 +31,8 @@ def highlight_mesh(mesh, densities, threshold):
     return density_mesh
 
 def convert_ply(ply_path, output_path, display=False, heatmap=0.0, visualize=False):
+    print("Loading mesh from {}".format(ply_path))
+    print("Converting to {}".format(output_path))
     ply_path = str(ply_path)
     output_path = str(output_path)
     if visualize:

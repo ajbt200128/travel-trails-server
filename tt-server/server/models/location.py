@@ -59,6 +59,8 @@ class Location(db.Model):
 
     @classmethod
     def check_queue(cls):
+        current_jobs = [cls.query.get(job[1]).name for job in job_queue]
+        print("Current queue:", current_jobs, flush=True)
         finished_jobs = []
         for (p, id) in job_queue:
             if not p.is_alive():
