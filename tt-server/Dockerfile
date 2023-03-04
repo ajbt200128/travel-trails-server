@@ -13,12 +13,12 @@ RUN python3.9 -m pip install poetry
 
 COPY pyproject.toml poetry.lock ./
 COPY server ./server
-COPY migrations ./migrations
-COPY README.md ./
-COPY entrypoint.sh ./
 
 
 RUN poetry install --no-dev
 
+COPY migrations ./migrations
+COPY README.md ./
+COPY entrypoint.sh ./
 
 CMD ["poetry", "run", "./entrypoint.sh"]

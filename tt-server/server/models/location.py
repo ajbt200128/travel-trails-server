@@ -90,9 +90,10 @@ class Location(db.Model):
         db.session.commit()
 
     def convert(self):
-        p = Process(target=self.convert_process)
-        p.start()
-        job_queue.append((p, self.id))
+        self.convert_process()
+        #p = Process(target=self.convert_process)
+        #p.start()
+        #job_queue.append((p, self.id))
 
     def convert_process(self):
         print("Converting location", self.id, flush=True)
