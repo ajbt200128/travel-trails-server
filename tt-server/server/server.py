@@ -132,6 +132,10 @@ def convert_location(location_id):
     location.convert()
     return jsonify({"message": "Location converted"}), 200
 
+@app.route("/location/convert_check", methods=["GET"])
+def convert_check():
+    finished = Location.check_queue()
+    return jsonify({"finished": finished}), 200
 
 # ===============================================================================
 # Image API

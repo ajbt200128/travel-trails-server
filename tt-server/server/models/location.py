@@ -9,6 +9,7 @@ from shapely import geometry
 from shapely.geometry import Point, Polygon
 from multiprocessing import Process
 
+job_queue = []
 
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -56,9 +57,21 @@ class Location(db.Model):
         geometry = from_shape(point, srid=4326)
         return cls.query.filter(Location.geometry.ST_DWithin(geometry, radius)).all()
 
+    @classmethod
+    def check_queue(cls):
+        finished_jobs = []
+        for (p, id) in job_queue:
+            if not p.is_alive():
+                job_queue.remove((p, id))
+                finished_jobs.append(id)
+
+        names = [cls.query.get(id).name for id in finished_jobs]
+        return names
+
     def convert(self):
         p = Process(target=self.convert_process)
         p.start()
+        job_queue.append((p, self.id))
 
     def convert_process(self):
         convert_ply(self.point_cloud_path, self.model_path)
