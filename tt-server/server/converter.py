@@ -43,12 +43,14 @@ def convert_ply(ply_path, output_path, display=False, heatmap=0.0, visualize=Fal
     cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.000001)
     pcd = cl
     pcd.estimate_normals()
+    print("Downsampled point cloud with %d points." % len(pcd.points), flush=True)
+    print("Time taken: %f" % (time.time() - start_time), flush=True)
     with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as _:
         start_time = time.time()
         mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
             pcd, depth=12
         )
-        print("Surface reconstruction took %s seconds" % (time.time() - start_time))
+        print("Surface reconstruction took %s seconds" % (time.time() - start_time), flush=True)
 
         if heatmap > 0:
             mesh = highlight_mesh(mesh, densities, heatmap)

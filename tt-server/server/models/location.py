@@ -74,6 +74,7 @@ class Location(db.Model):
         job_queue.append((p, self.id))
 
     def convert_process(self):
+        print("Converting location", self.id, flush=True)
         convert_ply(self.point_cloud_path, self.model_path)
         convert_ply(self.point_cloud_path, self.heatmap_path, heatmap=0.035)
 
