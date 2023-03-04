@@ -7,7 +7,6 @@ from pathlib import Path
 from flask import Flask, jsonify, render_template, request, send_file
 from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
-from server.converter import convert_ply
 from server.database import db
 from server.image_tools import create_image_gallery, flickr_search
 from server.models import Image, Location, User, UserVisit  # NOQA
@@ -130,8 +129,7 @@ def convert_location(location_id):
     location = Location.query.get(location_id)
     if location is None:
         return jsonify({"message": "Location not found"}), 404
-    convert_ply(location.ply_path, location.model_path)
-    convert_ply(location.ply_path, location.heatmap_path, heatmap=0.035)
+    location.convert()
     return jsonify({"message": "Location converted"}), 200
 
 

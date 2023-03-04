@@ -7,6 +7,7 @@ from server.converter import convert_ply
 from server.database import db
 from shapely import geometry
 from shapely.geometry import Point, Polygon
+from multiprocessing import Process
 
 
 class Location(db.Model):
@@ -56,7 +57,12 @@ class Location(db.Model):
         return cls.query.filter(Location.geometry.ST_DWithin(geometry, radius)).all()
 
     def convert(self):
+        p = Process(target=self.convert_process)
+        p.start()
+
+    def convert_process(self):
         convert_ply(self.point_cloud_path, self.model_path)
+        convert_ply(self.point_cloud_path, self.heatmap_path, heatmap=0.035)
 
     def to_dict(self):
         location_geometry = geometry.mapping(to_shape(self.geometry))
