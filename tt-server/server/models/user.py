@@ -6,7 +6,7 @@ from server.database import db
 class User(db.Model):
     username = db.Column(db.String(64), primary_key=True)
     name = db.Column(db.String(64), nullable=False)
-    profile_picture = db.Column(db.String(64), nullable=False)
+    profile_picture = db.Column(db.String(1024), nullable=False)
 
     @classmethod
     def create(cls, username, name, profile_picture):
