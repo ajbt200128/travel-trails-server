@@ -65,6 +65,31 @@ def create_location():
     db.session.commit()
     return jsonify(location.to_dict()), 201
 
+@app.route("/location/<location_id>", methods=["POST"])
+def update_location(location_id):
+    data = request.get_json()
+    if data is None:
+        return jsonify({"message": "Invalid data"}), 400
+
+    # Pairs of Lat/Lon points
+    points = data.get("points")
+    name = data.get("name")
+    description = data.get("description")
+    model_image_url = data.get("model_image_url")
+    if points is None and name is None and description is None and model_image_url is None:
+        return jsonify({"message": "Invalid data"}), 400
+    location = Location.query.get(location_id)
+    if location is None:
+        return jsonify({"message": "Invalid location id"}), 400
+
+    location.update(
+        name=name,
+        points=points,
+        description=description,
+        model_image_url=model_image_url,
+        last_updated=datetime.datetime.now(),
+    )
+    return jsonify(location.to_dict()), 200
 
 @app.route("/location/<location_id>", methods=["GET"])
 def get_location(location_id):

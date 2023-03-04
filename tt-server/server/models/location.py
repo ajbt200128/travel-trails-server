@@ -8,6 +8,7 @@ from server.database import db
 from shapely import geometry
 from shapely.geometry import Point, Polygon
 from multiprocessing import Process
+import datetime
 
 job_queue = []
 
@@ -17,6 +18,7 @@ class Location(db.Model):
     geometry = db.Column(Geometry(geometry_type="POLYGON", srid=4326))
     description = db.Column(db.Text, nullable=False)
     last_updated = db.Column(db.DateTime, nullable=False)
+    model_image_url = db.Column(db.String(1024), nullable=True)
 
     @property
     def images(self):
@@ -35,7 +37,7 @@ class Location(db.Model):
         return Path(UPLOAD_FOLDER) / "heatmaps" / f"{self.id}.gltf"
 
     @classmethod
-    def from_points(cls, name, points, description, last_updated):
+    def from_points(cls, name, points, description, last_updated, model_image_url=None):
 
         # Create a polygon from the points
         points = [Point(p[0], p[1]) for p in points]
@@ -46,6 +48,7 @@ class Location(db.Model):
             geometry=geometry,
             description=description,
             last_updated=last_updated,
+            model_image_url=model_image_url,
         )
         db.session.add(location)
         db.session.commit()
@@ -69,6 +72,22 @@ class Location(db.Model):
 
         names = [cls.query.get(id).name for id in finished_jobs]
         return names
+
+    def update(self, name=None, points=None, description=None, model_image_url=None):
+        if name:
+            self.name = name
+        if points:
+            # Create a polygon from the points
+            points = [Point(p[0], p[1]) for p in points]
+            polygon = Polygon([[p.x, p.y] for p in points])
+            geometry = from_shape(polygon, srid=4326)
+            self.geometry = geometry
+        if description:
+            self.description = description
+        if model_image_url:
+            self.model_image_url = model_image_url
+        self.last_updated = datetime.datetime.now()
+        db.session.commit()
 
     def convert(self):
         p = Process(target=self.convert_process)
