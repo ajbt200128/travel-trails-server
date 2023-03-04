@@ -31,6 +31,9 @@ def highlight_mesh(mesh, densities, threshold):
     return density_mesh
 
 def convert_ply(ply_path, output_path, display=False, heatmap=0.0, visualize=False):
+    ply_path = str(ply_path)
+    output_path = str(output_path)
+
     if visualize:
         # Open output path
         o3d.visualization.draw_geometries([o3d.io.read_triangle_mesh(output_path)])
