@@ -15,10 +15,10 @@ COPY pyproject.toml poetry.lock ./
 COPY server ./server
 
 
+COPY README.md ./
 RUN poetry install --no-dev
 
 COPY migrations ./migrations
-COPY README.md ./
 COPY entrypoint.sh ./
 
 CMD ["poetry", "run", "./entrypoint.sh"]
