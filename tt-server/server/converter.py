@@ -33,15 +33,14 @@ def highlight_mesh(mesh, densities, threshold):
 def convert_ply(ply_path, output_path, display=False, heatmap=0.0, visualize=False):
     ply_path = str(ply_path)
     output_path = str(output_path)
-
     if visualize:
         # Open output path
         o3d.visualization.draw_geometries([o3d.io.read_triangle_mesh(output_path)])
         return
     start_time = time.time()
     pcd = o3d.io.read_point_cloud(ply_path)
-    pcd = pcd.uniform_down_sample(every_k_points=3)
-    cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.001)
+    pcd = pcd.uniform_down_sample(every_k_points=100)
+    cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.000001)
     pcd = cl
     pcd.estimate_normals()
     with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as _:

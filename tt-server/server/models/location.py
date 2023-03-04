@@ -69,10 +69,9 @@ class Location(db.Model):
         return names
 
     def convert(self):
-        self.convert_process()
-        #p = Process(target=self.convert_process)
-        #p.start()
-        #job_queue.append((p, self.id))
+        p = Process(target=self.convert_process)
+        p.start()
+        job_queue.append((p, self.id))
 
     def convert_process(self):
         convert_ply(self.point_cloud_path, self.model_path)
