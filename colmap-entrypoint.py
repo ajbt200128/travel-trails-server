@@ -35,6 +35,15 @@ def auto_reconstruct(location_id):
         "/working/var/travel-trails-files/models/{}".format(str(location_id)),
     ]
 
+
+    # might need to incorporate sudo
+    command = [
+        "./run-colmap-container.sh",
+        "/var/travel-trails-files",
+        "/working/var/travel-trails-files/images/{}".format(str(location_id)),
+        "/working/var/travel-trails-files/models/{}".format(str(location_id)),
+    ]
+
     out = subprocess.run(command, stdout=PIPE, stderr=PIPE)
     printt(out.returncode)
     printt(out.stdout.decode('utf-8'))

@@ -1,7 +1,12 @@
 import os
+import sys
 import json
+import glob
+import shutil
 import datetime
 import requests
+import subprocess
+from subprocess
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_file
@@ -9,7 +14,7 @@ from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
 from server.converter import convert_ply
 from server.database import db
-from server.image_tools import create_image_gallery, flickr_search
+from server.image_tools import flickr_search, process_video
 from server.models import Image, Location, User, UserVisit  # NOQA
 
 app = Flask(__name__, static_folder="static")
@@ -367,8 +372,105 @@ def dashboard_addmedia(location_id):
         
         return render_template("addmedia.html", msg="Error, POST form invalid", location=location)
 
-@app.route("/dashboard/generatemodel/<location_id>", methods=["GET"])
-def dashboard_generatemodel(location_id):
+@app.route("/dashboard/updatemodel/<location_id>", methods=["GET","POST"])
+def dashboard_updatemodel(location_id):
+    '''
+    Process all raw images and videos
+    Move raw images into images directory
+    Save raw video frames into image directory
+    
+    Calls colmap automatic reconstructor
+    '''
+
+    # Raw photo and video paths:
+    raw_img_path = Path("/var/travel-trails-files/") / "raw" / str(location_id) / "images"
+    raw_vid_path = Path("/var/travel-trails-files/") / "raw" / str(location_id) / "video"
+
+    # Destination path to put all images and video frames
+    dest_path = Path("/var/travel-trails-files/") / "images" / str(location_id)
+    dest_path.mkdir(parents=True, exist_ok=True)
+
+    # Display images and videos that need to be processed
+    files = {
+        "raw_img_path": raw_img_path,
+        "raw_imgs": [],
+        "raw_vid_path":  raw_vid_path,
+        "raw_vids": [],
+    }
+
+    # Parse the image path for images
+    if (os.path.exists(str(raw_img_path))):
+        img_query = "{}/*.jpg".format(str(raw_img_path))
+        files["raw_imgs"] = glob.glob(img_query)
+
+        if (len(files["raw_imgs"]) == 0):
+            files["raw_img_path"] = "No unprocessed images found in {}".format(raw_img_path)
+    else:
+        files["raw_img_path"] = "Path {} does not exist.".format(raw_img_path)
+
+    # Parse the video path for videos 
+    if (os.path.exists(str(raw_vid_path))):
+        vid_query = "{}/*.mp4".format(str(raw_vid_path))
+        files["raw_vids"] = glob.glob(vid_query)
+
+        if (len(files["raw_vids"]) == 0):
+            files["raw_vid_path"] = "No unprocessed videos found in {}".format(raw_vid_path)
+    else:
+        files["raw_vid_path"] = "Path {} does not exist.".format(raw_vid_path)
+
+
+    if request.method == "GET":
+        # Just print all the unprocessed media
+        return render_template(files=files)
+
+    if request.method == "POST":
+        # Print moving the unprocessed media
+
+        if (len(files["raw_imgs"]) > 0):
+            # Move all raw  images into dest path
+
+            for img in files["raw_imgs"]:
+                img_name = img.split("/")[-1]
+
+                dest_img = os.path.join(dest_path,img_name)
+                print("Moving {} to {}".format(str(img), dest_img))
+                shutil.move(str(img), str(dest_img))
+
+        if (len(files["raw_vids"]) > 0):
+            # Move all raw videos into dest path
+            # Split frames into image directory
+
+            if (len(files["raw_vids"]) > 0):
+
+                for vid in files["raw_vids"]:
+                    vid_name = vid.split("/")[-1]
+
+                    # destination  path
+                    frame_dest_format =  os.path.join(dest_path,"{}_{{}}.jpg".format(vid_name))
+                    process_video(vid, frame_dest_format, skip=10)
+
+                    # rename vid so we know its processed
+                    processed_vid = vid + "processed"
+                    shutil.move(str(vid), str(processed_vid))
+
+        if (len(files["raw_imgs"]) > 0 or len(files["raw_vids"]) > 0):
+            # Run colmap autoreconstruct
+            command = [
+                "./run-colmap-container.sh",
+                "/var/travel-trails-files",
+                "/working/var/travel-trails-files/images/{}".format(str(location_id)),
+                "/working/var/travel-trails-files/models/{}".format(str(location_id)),
+            ]
+
+            out = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
+            #print(out.returncode)
+            #print(out.stdout.decode('utf-8'))
+
+            msg = "Updating model with new content:"
+            return render_template(files=files,msg=msg)
+
+
+
     pass
 
 

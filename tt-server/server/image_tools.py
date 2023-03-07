@@ -1,3 +1,4 @@
+import cv2
 import requests
 
 
@@ -86,3 +87,32 @@ def create_image_gallery(photo_urls, parameters):
         )
 
         return html_gallery
+
+
+def process_video(video_path,output_path_format,skip=10):
+    '''
+    Assume video input is 16 high by 9 width
+    output_path_format example: frames/frame_{}.jpg
+    will be converted to frames/frame_00000.jpg
+    Skip frames
+    '''
+
+    # save frames of the video
+    cap = cv2.VideoCapture(video_path)
+    i = 0
+    j = 0
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+        if ret == False:
+            break
+        frame = cv2.resize(frame, (960,540))
+        if (i % skip == 0):
+            # for some reason, frame appears flipped
+            #frame = cv2.flip(frame, 0)
+            filename = output_path_format.format(str(j).zfill(5)),frame
+            cv2.imwrite(filename)
+            j += 1
+        i += 1
+
+    cap.release()
+    cv2.destroyAllWindows()
