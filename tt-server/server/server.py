@@ -6,7 +6,6 @@ import shutil
 import datetime
 import requests
 import subprocess
-from subprocess
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_file
@@ -236,14 +235,14 @@ def dashboard_createmodel():
             print(str(desc))
             valid = False
 
-        if (not is_float(lat) or
+        if (not isinstance(lat,float) or
             not (float(lat) >= -180.0 and float(lat) <= 180.0)):
             # lat is not a float or not in valid range [0, 180]
             print("Error parsing lat:")
             print(str(lon))
             valid = False
 
-        if (not is_float(lon) or
+        if (not isinstance(lon,float) or
             not (float(lon) >= -180.0 and float(lon) <= 180.0)):
             # lon is not a float or not in valid range [0, 180]
             print("Error parsing lon:")
@@ -251,7 +250,7 @@ def dashboard_createmodel():
             valid = False
 
         if not valid:
-            return render_template("createmodel.html",msg="Error creating model.")
+            return render_template("createmodel.html",msg="Error creating model. Invalid data")
         else:
             # Add the location
 
@@ -383,11 +382,12 @@ def dashboard_updatemodel(location_id):
     '''
 
     # Raw photo and video paths:
-    raw_img_path = Path("/var/travel-trails-files/") / "raw" / str(location_id) / "images"
-    raw_vid_path = Path("/var/travel-trails-files/") / "raw" / str(location_id) / "video"
+
+    raw_img_path = Path(UPLOAD_FOLDER) / "raw" / str(location_id) / "images"
+    raw_vid_path = Path(UPLOAD_FOLDER) / "raw" / str(location_id) / "videos"
 
     # Destination path to put all images and video frames
-    dest_path = Path("/var/travel-trails-files/") / "images" / str(location_id)
+    dest_path = Path(UPLOAD_FOLDER) / "images" / str(location_id)
     dest_path.mkdir(parents=True, exist_ok=True)
 
     # Display images and videos that need to be processed
@@ -421,9 +421,9 @@ def dashboard_updatemodel(location_id):
 
     if request.method == "GET":
         # Just print all the unprocessed media
-        return render_template(files=files)
+        return render_template("updatemodel.html", files=files, location_id=location_id)
 
-    if request.method == "POST":
+    if request.method == "POST" and "update-point-cloud" in request.form:
         # Print moving the unprocessed media
 
         if (len(files["raw_imgs"]) > 0):
@@ -443,7 +443,9 @@ def dashboard_updatemodel(location_id):
             if (len(files["raw_vids"]) > 0):
 
                 for vid in files["raw_vids"]:
+                    # extract the video name from the path without file extension
                     vid_name = vid.split("/")[-1]
+                    vid_name = vid_name.split(".")[0]
 
                     # destination  path
                     frame_dest_format =  os.path.join(dest_path,"{}_{{}}.jpg".format(vid_name))
@@ -453,25 +455,51 @@ def dashboard_updatemodel(location_id):
                     processed_vid = vid + "processed"
                     shutil.move(str(vid), str(processed_vid))
 
-        if (len(files["raw_imgs"]) > 0 or len(files["raw_vids"]) > 0):
-            # Run colmap autoreconstruct
-            command = [
-                "./run-colmap-container.sh",
-                "/var/travel-trails-files",
-                "/working/var/travel-trails-files/images/{}".format(str(location_id)),
-                "/working/var/travel-trails-files/models/{}".format(str(location_id)),
-            ]
+        # Run colmap autoreconstruct
+        command = [
+            "sh",
+            "run-colmap-build-model.sh",
+            "/data/var/travel-trails-files",
+            "/working/data/var/travel-trails-files/images/{}".format(str(location_id)),
+            "/working/data/var/travel-trails-files/models/{}".format(str(location_id)),
+        ]
 
-            out = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
-            #print(out.returncode)
-            #print(out.stdout.decode('utf-8'))
+        # TODO: Save the previous model before overwritting
 
-            msg = "Updating model with new content:"
-            return render_template(files=files,msg=msg)
+        out = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
+        #print(out.returncode)
+        #print(out.stdout.decode('utf-8'))
 
+        msg = "Updating point cloud with new content. Please wait. This can take a while."
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
 
+    if request.method == "POST" and "update-mesh" in request.form:
+        # TODO: call update mesh endpoint
 
-    pass
+        msg = "Updating mesh with new content. Please wait. This can take a while."
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
+
+@app.route("/dashboard/colmapjobqueue", methods=["GET","POST"])
+def colmapjobqueue():
+    if request.method == "GET":
+        # send a request to colmap server
+        print("Sending request to colmap server")
+        response = requests.get("http://localhost:5000/hello")
+        msg = str(response.json())
+        print("Received request: {}".format(msg))
+
+        return render_template("colmapjobqueue.html",msg=msg)
+
+    if request.method == "POST":
+        url = request.form["url"]
+        print("Requesting: {}".format(url))
+
+        response = requests.get(url)
+        msg = str(response.json())
+        print("Received request: {}".format(msg))
+
+        return render_template("colmapjobqueue.html",msg=msg)
+
 
 
 # ===============================================================================

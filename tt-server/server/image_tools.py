@@ -105,12 +105,12 @@ def process_video(video_path,output_path_format,skip=10):
         ret, frame = cap.read()
         if ret == False:
             break
-        frame = cv2.resize(frame, (960,540))
+        frame = cv2.resize(frame, (540,960))
         if (i % skip == 0):
             # for some reason, frame appears flipped
             #frame = cv2.flip(frame, 0)
-            filename = output_path_format.format(str(j).zfill(5)),frame
-            cv2.imwrite(filename)
+            filename = output_path_format.format(str(j).zfill(5))
+            cv2.imwrite(filename,frame)
             j += 1
         i += 1
 
