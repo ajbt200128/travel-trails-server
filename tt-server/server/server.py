@@ -235,14 +235,14 @@ def dashboard_createmodel():
             print(str(desc))
             valid = False
 
-        if (not isinstance(lat,float) or
+        if (not isinstance(float(lat),float) or
             not (float(lat) >= -180.0 and float(lat) <= 180.0)):
             # lat is not a float or not in valid range [0, 180]
             print("Error parsing lat:")
-            print(str(lon))
+            print(str(lat))
             valid = False
 
-        if (not isinstance(lon,float) or
+        if (not isinstance(float(lon),float) or
             not (float(lon) >= -180.0 and float(lon) <= 180.0)):
             # lon is not a float or not in valid range [0, 180]
             print("Error parsing lon:")
@@ -380,6 +380,11 @@ def dashboard_updatemodel(location_id):
     
     Calls colmap automatic reconstructor
     '''
+
+    print("cwd: {}".format(Path.cwd()))
+    print("ls: {}".format(os.listdir()))
+    print("ls server: {}".format(os.listdir("server")))
+    print("ls /data: {}".format(os.listdir("/data")))
 
     # Raw photo and video paths:
 

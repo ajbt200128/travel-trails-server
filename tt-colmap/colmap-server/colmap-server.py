@@ -59,8 +59,8 @@ def dojobs():
                 # Run colmap autoreconstruct
 
                 # check if workspace path and image path exist
-                workspace_path = "/data/var/travel-trails-files/images/{}".format(str(location_id))
-                image_path = "/data/var/travel-trails-files/images/{}/images".format(str(location_id))
+                workspace_path = "/data/images/{}".format(str(location_id))
+                image_path = "/data/images/{}/images".format(str(location_id))
 
                 if (os.path.exists(workspace_path) and os.path.exists(image_path)):
                     print("workspace_path and image_path both exist")
@@ -85,6 +85,8 @@ def dojobs():
                 else:
                     print("cwd: {}".format(Path.cwd()))
                     print("ls: {}".format(os.listdir()))
+                    print("ls colmap-server: {}".format(os.listdir("colmap-server")))
+                    print("ls /data: {}".format(os.listdir("/data")))
 
 
                     if (not os.path.exists(workspace_path)):

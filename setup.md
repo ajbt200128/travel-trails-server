@@ -80,3 +80,9 @@ Check podman container is actually removed
 ```bash
 sudo podman container ls
 ```
+
+## Update
+To manually run Dockerfile, do
+```bash
+sudo podman run -f ./Dockerfile
+```
