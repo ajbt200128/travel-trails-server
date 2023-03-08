@@ -522,10 +522,71 @@ def dashboard_updatemodel(location_id):
         return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id, model=model)
 
     if request.method == "POST" and "update-mesh" in request.form:
-        # TODO: call update mesh endpoint
-        
         location = Location.query.get(location_id)
         location.convert()
+
+        msg = "Updated mesh with new content"
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id, model=model)
+
+    if request.method == "POST" and "update-info" in request.form:
+
+        # All fields are required
+        name = request.form["name"]
+        desc = request.form["description"]
+        lat = request.form["latitude"]
+        lon = request.form["longitude"]
+        model_image_url = request.form["url"]
+
+        # Entry validation
+        valid = True
+        if (not isinstance(name,str) or not (name and name.strip())):
+            # name is not a string or it is none, empty, or blank
+            print("Error parsing name:")
+            print(str(name))
+            valid = False
+
+        if (not isinstance(desc,str) or not (desc and desc.strip())):
+            # desc is not a string or it is none, empty, or blank
+            print("Error parsing desc:")
+            print(str(desc))
+            valid = False
+
+        if (not isinstance(float(lat),float) or
+            not (float(lat) >= -180.0 and float(lat) <= 180.0)):
+            # lat is not a float or not in valid range [0, 180]
+            print("Error parsing lat:")
+            print(str(lat))
+            valid = False
+
+        if (not isinstance(float(lon),float) or
+            not (float(lon) >= -180.0 and float(lon) <= 180.0)):
+            # lon is not a float or not in valid range [0, 180]
+            print("Error parsing lon:")
+            print(str(lon))
+            valid = False
+
+        if not valid:
+            return render_template("updatemodel.html",msg="Error updating model. Invalid data")
+        else:
+            # Add the location
+
+            # Compute a square around the center lat, lon
+            radius = 0.0001 # about 60 ft
+            lat = float(lat)
+            lon = float(lon)
+            points = [
+                (lat - radius, lon - radius),
+                (lat - radius, lon + radius),
+                (lat + radius, lon + radius),
+                (lat + radius, lon - radius),
+            ]
+            
+            location.update(
+                name=name,
+                points=points,
+                description=desc,
+                model_image_url=model_image_url,
+            )
 
         msg = "Updated mesh with new content"
         return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id, model=model)
