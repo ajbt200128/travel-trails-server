@@ -224,16 +224,31 @@ def get_image_data(image_id):
 # ===============================================================================
 # Dashboard
 # ===============================================================================
-@app.route("/dashboard", methods=["GET"])
+@app.route("/dashboard", methods=["GET","POST"])
 def dashboard():
-    # Get the locations
-    locations = Location.query.all()
-    locations = [location.to_dict() for location in locations]
+    if request.method == 'GET':
+        # Get the locations
+        locations = Location.query.all()
+        locations = [location.to_dict() for location in locations]
 
-    #print(locations)
-    #print("printed locations")
+        return render_template("index.html", locations=locations)
 
-    return render_template("index.html", locations=locations)
+    if request.method == 'POST':
+
+        if ('delete' in request.form):
+            # delete model with location_id
+            location_id = request.form["location_id"]
+            location = Location.query.get(location_id)
+            db.session.delete(location)
+            db.session.commit()
+
+        # Get the locations
+        locations = Location.query.all()
+        locations = [location.to_dict() for location in locations]
+
+        
+        return render_template("index.html", locations=locations)
+
 
 
 @app.route("/dashboard/createmodel", methods=["GET","POST"])
@@ -408,10 +423,8 @@ def dashboard_updatemodel(location_id):
     Calls colmap automatic reconstructor
     '''
 
-    print("cwd: {}".format(Path.cwd()))
-    print("ls: {}".format(os.listdir()))
-    print("ls server: {}".format(os.listdir("server")))
-    print("ls /data: {}".format(os.listdir("/data")))
+    location = Location.query.get(location_id)
+    model = location.to_dict()
 
     # Raw photo and video paths:
 
@@ -453,7 +466,7 @@ def dashboard_updatemodel(location_id):
 
     if request.method == "GET":
         # Just print all the unprocessed media
-        return render_template("updatemodel.html", files=files, location_id=location_id)
+        return render_template("updatemodel.html", files=files, location_id=location_id, model=model)
 
     if request.method == "POST" and "update-point-cloud" in request.form:
         # Print moving the unprocessed media
@@ -506,13 +519,16 @@ def dashboard_updatemodel(location_id):
         msg = "Updating point cloud with new content. Please wait. This can take a while."
         msg += str(jobQueue)
 
-        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id, model=model)
 
     if request.method == "POST" and "update-mesh" in request.form:
         # TODO: call update mesh endpoint
+        
+        location = Location.query.get(location_id)
+        location.convert()
 
-        msg = "Updating mesh with new content. Please wait. This can take a while."
-        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
+        msg = "Updated mesh with new content"
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id, model=model)
 
 @app.route("/dashboard/colmapjobqueue", methods=["GET","POST"])
 def colmapjobqueue():
@@ -535,6 +551,20 @@ def colmapjobqueue():
 
         return render_template("colmapjobqueue.html",msg=msg)
 
+
+@app.route("/dashboard/viewmodel/<location_id>", methods=["GET"])
+def dashboard_viewmodel(location_id):
+    if request.method == 'GET':
+        '''
+        location = Location.query.get(location_id)
+        model_path = location.model_path
+        heatmap_path = location.heatmap_path
+        '''
+        # TODO: fix these paths
+        model_path = "http://coltrane.cs.seas.gwu.edu:8080/location/{}/model.gltf".format(location_id)
+        heatmap_path= "http://coltrane.cs.seas.gwu.edu:8080/location/{}/heatmap.gltf".format(location_id)
+
+        return render_template("viewmodel.html",model_path=model_path,heatmap_path=heatmap_path)
 
 
 # ===============================================================================

@@ -21,6 +21,12 @@
       <p>geometry: {{ location.geometry }}</p>
       <a href="/dashboard/addmedia/{{location.id}}">Add media</a>
       <a href="/dashboard/updatemodel/{{location.id}}">Update model</a>
+      <a href="/dashboard/viewmodel/{{location.id}}">View model</a>
+
+      <form action="/dashboard" method="POST">
+        <input type="hidden" name="location_id" value="{{location.id}}"> 
+        <input type="submit" name="delete" value="Delete model">
+      </form>
       <hr>
     </div>
     {% endfor %}
