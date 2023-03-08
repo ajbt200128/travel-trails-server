@@ -425,8 +425,12 @@ def dashboard_updatemodel(location_id):
 
     if request.method == "POST" and "update-point-cloud" in request.form:
         # Print moving the unprocessed media
+        num_frames = 0
+        num_images = 0
 
         if (len(files["raw_imgs"]) > 0):
+            num_images = len(files["raw_imgs"])
+
             # Move all raw  images into dest path
 
             for img in files["raw_imgs"]:
@@ -449,28 +453,27 @@ def dashboard_updatemodel(location_id):
 
                     # destination  path
                     frame_dest_format =  os.path.join(dest_path,"{}_{{}}.jpg".format(vid_name))
-                    process_video(vid, frame_dest_format, skip=10)
+                    num_frames = process_video(vid, frame_dest_format, skip=10)
 
                     # rename vid so we know its processed
                     processed_vid = vid + "processed"
                     shutil.move(str(vid), str(processed_vid))
 
-        # Run colmap autoreconstruct
-        command = [
-            "sh",
-            "run-colmap-build-model.sh",
-            "/data/var/travel-trails-files",
-            "/working/data/var/travel-trails-files/images/{}".format(str(location_id)),
-            "/working/data/var/travel-trails-files/models/{}".format(str(location_id)),
-        ]
-
-        # TODO: Save the previous model before overwritting
-
-        out = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
-        #print(out.returncode)
-        #print(out.stdout.decode('utf-8'))
+        # Add job to the job queue
+        now = str(datetime.datetime.now())
+        job = {
+            "type": "RECONSTRUCT",
+            "time": now,
+            "location_id": location_id,
+            "images": num_images,
+            "frames": num_frames
+        }
+        response = requests.post(url="http://localhost:5000/jobadd",json=job)
+        jobQueue = str(response.json())
 
         msg = "Updating point cloud with new content. Please wait. This can take a while."
+        msg += str(jobQueue)
+
         return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
 
     if request.method == "POST" and "update-mesh" in request.form:
@@ -484,7 +487,7 @@ def colmapjobqueue():
     if request.method == "GET":
         # send a request to colmap server
         print("Sending request to colmap server")
-        response = requests.get("http://localhost:5000/hello")
+        response = requests.get("http://localhost:5000/jobstatus")
         msg = str(response.json())
         print("Received request: {}".format(msg))
 
