@@ -7,7 +7,10 @@ from server.converter import convert_ply
 from server.database import db
 from shapely import geometry
 from shapely.geometry import Point, Polygon
+from multiprocessing import Process
+import datetime
 
+job_queue = []
 
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -15,6 +18,7 @@ class Location(db.Model):
     geometry = db.Column(Geometry(geometry_type="POLYGON", srid=4326))
     description = db.Column(db.Text, nullable=False)
     last_updated = db.Column(db.DateTime, nullable=False)
+    model_image_url = db.Column(db.String(1024), nullable=True)
 
     @property
     def images(self):
@@ -22,7 +26,7 @@ class Location(db.Model):
 
     @property
     def point_cloud_path(self):
-        return Path(UPLOAD_FOLDER) / "images" / f"{self.id}" / "dense" / "fused" / "0" / "fused.ply"
+        return Path(UPLOAD_FOLDER) / "images" / f"{self.id}" / "dense" / "0" / "fused.ply"
 
     @property
     def model_path(self):
@@ -33,7 +37,7 @@ class Location(db.Model):
         return Path(UPLOAD_FOLDER) / "heatmaps" / f"{self.id}.gltf"
 
     @classmethod
-    def from_points(cls, name, points, description, last_updated):
+    def from_points(cls, name, points, description, last_updated, model_image_url=None):
 
         # Create a polygon from the points
         points = [Point(p[0], p[1]) for p in points]
@@ -44,6 +48,7 @@ class Location(db.Model):
             geometry=geometry,
             description=description,
             last_updated=last_updated,
+            model_image_url=model_image_url,
         )
         db.session.add(location)
         db.session.commit()
@@ -55,8 +60,45 @@ class Location(db.Model):
         geometry = from_shape(point, srid=4326)
         return cls.query.filter(Location.geometry.ST_DWithin(geometry, radius)).all()
 
+    @classmethod
+    def check_queue(cls):
+        current_jobs = [cls.query.get(job[1]).name for job in job_queue]
+        print("Current queue:", current_jobs, flush=True)
+        finished_jobs = []
+        for (p, id) in job_queue:
+            if not p.is_alive():
+                job_queue.remove((p, id))
+                finished_jobs.append(id)
+
+        names = [cls.query.get(id).name for id in finished_jobs]
+        return names
+
+    def update(self, name=None, points=None, description=None, model_image_url=None):
+        if name:
+            self.name = name
+        if points:
+            # Create a polygon from the points
+            points = [Point(p[0], p[1]) for p in points]
+            polygon = Polygon([[p.x, p.y] for p in points])
+            geometry = from_shape(polygon, srid=4326)
+            self.geometry = geometry
+        if description:
+            self.description = description
+        if model_image_url:
+            self.model_image_url = model_image_url
+        self.last_updated = datetime.datetime.now()
+        db.session.commit()
+
     def convert(self):
+        self.convert_process()
+        #p = Process(target=self.convert_process)
+        #p.start()
+        #job_queue.append((p, self.id))
+
+    def convert_process(self):
+        print("Converting location", self.id, flush=True)
         convert_ply(self.point_cloud_path, self.model_path)
+        convert_ply(self.point_cloud_path, self.heatmap_path, heatmap=0.035)
 
     def to_dict(self):
         location_geometry = geometry.mapping(to_shape(self.geometry))
@@ -68,6 +110,7 @@ class Location(db.Model):
             "longitude": location_geometry["coordinates"][0][0][1],
             "description": self.description,
             "last_updated": self.last_updated,
+            "model_image_url": self.model_image_url,
         }
 
 

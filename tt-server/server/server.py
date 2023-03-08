@@ -7,7 +7,6 @@ from pathlib import Path
 from flask import Flask, jsonify, render_template, request, send_file
 from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
-from server.converter import convert_ply
 from server.database import db
 from server.image_tools import create_image_gallery, flickr_search
 from server.models import Image, Location, User, UserVisit  # NOQA
@@ -66,6 +65,31 @@ def create_location():
     db.session.commit()
     return jsonify(location.to_dict()), 201
 
+@app.route("/location/<location_id>", methods=["POST"])
+def update_location(location_id):
+    data = request.get_json()
+    if data is None:
+        return jsonify({"message": "Invalid data"}), 400
+
+    # Pairs of Lat/Lon points
+    points = data.get("points")
+    name = data.get("name")
+    description = data.get("description")
+    model_image_url = data.get("model_image_url")
+    if points is None and name is None and description is None and model_image_url is None:
+        return jsonify({"message": "Invalid data"}), 400
+    location = Location.query.get(location_id)
+    if location is None:
+        return jsonify({"message": "Invalid location id"}), 400
+
+    location.update(
+        name=name,
+        points=points,
+        description=description,
+        model_image_url=model_image_url,
+        last_updated=datetime.datetime.now(),
+    )
+    return jsonify(location.to_dict()), 200
 
 @app.route("/location/<location_id>", methods=["GET"])
 def get_location(location_id):
@@ -91,7 +115,7 @@ def get_location_model_heatmap(location_id):
         return jsonify({"message": "Location not found"}), 404
 
     # open location.model_path and return it
-    return send_file(location.model_path, mimetype="text/json"), 200
+    return send_file(location.heatmap_path, mimetype="text/json"), 200
 
 @app.route("/location/<location_id>", methods=["DELETE"])
 def delete_location(location_id):
@@ -130,10 +154,13 @@ def convert_location(location_id):
     location = Location.query.get(location_id)
     if location is None:
         return jsonify({"message": "Location not found"}), 404
-    convert_ply(location.ply_path, location.model_path)
-    convert_ply(location.ply_path, location.heatmap_path, heatmap=0.035)
+    location.convert()
     return jsonify({"message": "Location converted"}), 200
 
+@app.route("/location/convert_check", methods=["GET"])
+def convert_check():
+    finished = Location.check_queue()
+    return jsonify({"finished": finished}), 200
 
 # ===============================================================================
 # Image API

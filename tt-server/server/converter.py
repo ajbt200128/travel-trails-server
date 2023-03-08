@@ -31,22 +31,28 @@ def highlight_mesh(mesh, densities, threshold):
     return density_mesh
 
 def convert_ply(ply_path, output_path, display=False, heatmap=0.0, visualize=False):
+    print("Loading mesh from {}".format(ply_path))
+    print("Converting to {}".format(output_path))
+    ply_path = str(ply_path)
+    output_path = str(output_path)
     if visualize:
         # Open output path
         o3d.visualization.draw_geometries([o3d.io.read_triangle_mesh(output_path)])
         return
     start_time = time.time()
     pcd = o3d.io.read_point_cloud(ply_path)
-    pcd = pcd.uniform_down_sample(every_k_points=3)
-    cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.001)
+    pcd = pcd.uniform_down_sample(every_k_points=15)
+    cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.000001)
     pcd = cl
     pcd.estimate_normals()
+    print("Downsampled point cloud with %d points." % len(pcd.points), flush=True)
+    print("Time taken: %f" % (time.time() - start_time), flush=True)
     with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as _:
         start_time = time.time()
         mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
             pcd, depth=12
         )
-        print("Surface reconstruction took %s seconds" % (time.time() - start_time))
+        print("Surface reconstruction took %s seconds" % (time.time() - start_time), flush=True)
 
         if heatmap > 0:
             mesh = highlight_mesh(mesh, densities, heatmap)
