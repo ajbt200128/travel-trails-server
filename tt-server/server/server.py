@@ -387,7 +387,7 @@ def dashboard_updatemodel(location_id):
     raw_vid_path = Path(UPLOAD_FOLDER) / "raw" / str(location_id) / "videos"
 
     # Destination path to put all images and video frames
-    dest_path = Path(UPLOAD_FOLDER) / "images" / str(location_id)
+    dest_path = Path(UPLOAD_FOLDER) / "images" / str(location_id) / "images"
     dest_path.mkdir(parents=True, exist_ok=True)
 
     # Display images and videos that need to be processed

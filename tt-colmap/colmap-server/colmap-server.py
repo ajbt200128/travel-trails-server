@@ -1,9 +1,11 @@
+import os
 import sys
 import json
 import datetime
 import threading
 import subprocess
 from time import sleep
+from pathlib import Path
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
@@ -26,7 +28,7 @@ def jobstatus():
 
 @app.route("/jobadd", methods=["POST"])
 def jobadd():
-    job = request.json()
+    job = request.get_json()
     print("Received new job: {}", str(job))
 
     jobQueue.append(job)
@@ -56,24 +58,39 @@ def dojobs():
 
                 # Run colmap autoreconstruct
 
-                command = [
-                    "colmap",
-                    "automatic_reconstructor",
-                    "--image_path",
-                    "/data/var/travel-trails-files/images/{}/images".format(str(location_id)),
-                    "--workspace_path",
-                    "/data/var/travel-trails-files/images/{}".format(str(location_id)),
-                ]
-                
-                out = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
-                subprocess.wait()
-                print("\n\n\n\n\n\n\n\n\n\n")
-                now = str(datetime.datetime.now())
-                print("[{}] Completed job {}".format(now, location_id))
-                print("Return status: {}".format(out.returncode))
-                print("\n\n\n\n\n\n\n\n\n\n")
+                # check if workspace path and image path exist
+                workspace_path = "/data/var/travel-trails-files/images/{}".format(str(location_id))
+                image_path = "/data/var/travel-trails-files/images/{}/images".format(str(location_id))
 
-                jobDone.append(jobRun.pop())
+                if (os.path.exists(workspace_path) and os.path.exists(image_path)):
+                    print("workspace_path and image_path both exist")
+                    command = [
+                        "colmap",
+                        "automatic_reconstructor",
+                        "--image_path",
+                        image_path,
+                        "--workspace_path",
+                        workspace_path,
+                    ]
+                    
+                    proc = subprocess.Popen(command, stdout=sys.stdout, stderr=sys.stderr)
+                    proc.wait()
+                    print("\n\n\n\n\n\n\n\n\n\n")
+                    now = str(datetime.datetime.now())
+                    print("[{}] Completed job {}".format(now, location_id))
+                    print("Return status: {}".format(proc.returncode))
+                    print("\n\n\n\n\n\n\n\n\n\n")
+
+                    jobDone.append(jobRun.pop())
+                else:
+                    print("cwd: {}".format(Path.cwd()))
+                    print("ls: {}".format(os.listdir()))
+
+
+                    if (not os.path.exists(workspace_path)):
+                        print("workspace_path: {} does not exist".format(workspace_path))
+                    if (not os.path.exists(image_path)):
+                        print("image_path: {} does not exist".format(image_path))
 
             if (job["type"] == "CONVERT"):
                 # TODO: Potentially provide support for Austin's converter tool
