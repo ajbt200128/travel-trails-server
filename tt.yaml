@@ -11,6 +11,22 @@ metadata:
   name: tt
 spec:
   containers:
+    - image: tt-colmap:latest
+      name: colorfulbooklet
+      ports:
+        - containerPort: 5000
+          hostPort: 5000
+      resources: {}
+      securityContext:
+        capabilities:
+          drop:
+            - CAP_MKNOD
+            - CAP_NET_RAW
+            - CAP_AUDIT_WRITE
+      tty: true
+      volumeMounts:
+        - mountPath: /data
+          name: var-travel-trails-data-host-0
     - image: tt-server:latest
       name: beautifulchaum
       ports:

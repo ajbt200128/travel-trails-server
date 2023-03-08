@@ -56,3 +56,33 @@ Stop server
 ```bash
 ./server-down.sh
 ```
+
+## COLMAP Container
+```bash
+sudo yum install -y nvidia-container-toolkit
+```
+Quiet message about Emulate Docker CLI with Podman
+```bash
+sudo touch /etc/containers/nodocker
+```
+
+Run colmap container (non-interactive)
+```bash
+sudo ./run-colmap-container.sh /home/jonathanlee
+```
+
+Run colmap container (interactive)
+```bash
+sudo ./run-colmap-container-interactive.sh /home/jonathanlee
+```
+
+Check podman container is actually removed
+```bash
+sudo podman container ls
+```
+
+## Update
+To manually run Dockerfile, do
+```bash
+sudo podman run -f ./Dockerfile
+```

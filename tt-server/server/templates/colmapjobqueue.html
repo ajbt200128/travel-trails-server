@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Travel Trails</title>
+
+    <link rel="stylesheet" href="../static/css/gallery.css">
+  </head>
+
+  <body>
+    <h1>Colmap Job Queue</h1>
+      <p>{{ msg }}</p>
+
+      <form action="/dashboard/colmapjobqueue" method="POST">
+        url request:<input type="text" name="url" required><br>
+        <input type="submit" name="query" value="query">
+      </form>
+
+    <a href="/dashboard">Return to dashboard</a>
+  </body>
+</html>

@@ -1,14 +1,18 @@
 import os
+import sys
 import json
+import glob
+import shutil
 import datetime
 import requests
+import subprocess
 from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_file
 from flask_migrate import Migrate
 from server.constants import DATABASE_URL, UPLOAD_FOLDER
 from server.database import db
-from server.image_tools import create_image_gallery, flickr_search
+from server.image_tools import flickr_search, process_video
 from server.models import Image, Location, User, UserVisit  # NOQA
 
 app = Flask(__name__, static_folder="static")
@@ -258,14 +262,14 @@ def dashboard_createmodel():
             print(str(desc))
             valid = False
 
-        if (not is_float(lat) or
+        if (not isinstance(float(lat),float) or
             not (float(lat) >= -180.0 and float(lat) <= 180.0)):
             # lat is not a float or not in valid range [0, 180]
             print("Error parsing lat:")
-            print(str(lon))
+            print(str(lat))
             valid = False
 
-        if (not is_float(lon) or
+        if (not isinstance(float(lon),float) or
             not (float(lon) >= -180.0 and float(lon) <= 180.0)):
             # lon is not a float or not in valid range [0, 180]
             print("Error parsing lon:")
@@ -273,7 +277,7 @@ def dashboard_createmodel():
             valid = False
 
         if not valid:
-            return render_template("createmodel.html",msg="Error creating model.")
+            return render_template("createmodel.html",msg="Error creating model. Invalid data")
         else:
             # Add the location
 
@@ -394,6 +398,146 @@ def dashboard_addmedia(location_id):
         
         return render_template("addmedia.html", msg="Error, POST form invalid", location=location)
 
+@app.route("/dashboard/updatemodel/<location_id>", methods=["GET","POST"])
+def dashboard_updatemodel(location_id):
+    '''
+    Process all raw images and videos
+    Move raw images into images directory
+    Save raw video frames into image directory
+    
+    Calls colmap automatic reconstructor
+    '''
+
+    print("cwd: {}".format(Path.cwd()))
+    print("ls: {}".format(os.listdir()))
+    print("ls server: {}".format(os.listdir("server")))
+    print("ls /data: {}".format(os.listdir("/data")))
+
+    # Raw photo and video paths:
+
+    raw_img_path = Path(UPLOAD_FOLDER) / "raw" / str(location_id) / "images"
+    raw_vid_path = Path(UPLOAD_FOLDER) / "raw" / str(location_id) / "videos"
+
+    # Destination path to put all images and video frames
+    dest_path = Path(UPLOAD_FOLDER) / "images" / str(location_id) / "images"
+    dest_path.mkdir(parents=True, exist_ok=True)
+
+    # Display images and videos that need to be processed
+    files = {
+        "raw_img_path": raw_img_path,
+        "raw_imgs": [],
+        "raw_vid_path":  raw_vid_path,
+        "raw_vids": [],
+    }
+
+    # Parse the image path for images
+    if (os.path.exists(str(raw_img_path))):
+        img_query = "{}/*.jpg".format(str(raw_img_path))
+        files["raw_imgs"] = glob.glob(img_query)
+
+        if (len(files["raw_imgs"]) == 0):
+            files["raw_img_path"] = "No unprocessed images found in {}".format(raw_img_path)
+    else:
+        files["raw_img_path"] = "Path {} does not exist.".format(raw_img_path)
+
+    # Parse the video path for videos 
+    if (os.path.exists(str(raw_vid_path))):
+        vid_query = "{}/*.mp4".format(str(raw_vid_path))
+        files["raw_vids"] = glob.glob(vid_query)
+
+        if (len(files["raw_vids"]) == 0):
+            files["raw_vid_path"] = "No unprocessed videos found in {}".format(raw_vid_path)
+    else:
+        files["raw_vid_path"] = "Path {} does not exist.".format(raw_vid_path)
+
+
+    if request.method == "GET":
+        # Just print all the unprocessed media
+        return render_template("updatemodel.html", files=files, location_id=location_id)
+
+    if request.method == "POST" and "update-point-cloud" in request.form:
+        # Print moving the unprocessed media
+        num_frames = 0
+        num_images = 0
+
+        if (len(files["raw_imgs"]) > 0):
+            num_images = len(files["raw_imgs"])
+
+            # Move all raw  images into dest path
+
+            for img in files["raw_imgs"]:
+                img_name = img.split("/")[-1]
+
+                dest_img = os.path.join(dest_path,img_name)
+                print("Moving {} to {}".format(str(img), dest_img))
+                shutil.move(str(img), str(dest_img))
+
+        if (len(files["raw_vids"]) > 0):
+            # Move all raw videos into dest path
+            # Split frames into image directory
+
+            if (len(files["raw_vids"]) > 0):
+
+                for vid in files["raw_vids"]:
+                    # extract the video name from the path without file extension
+                    vid_name = vid.split("/")[-1]
+                    vid_name = vid_name.split(".")[0]
+
+                    # destination  path
+                    frame_dest_format =  os.path.join(dest_path,"{}_{{}}.jpg".format(vid_name))
+                    num_frames = process_video(vid, frame_dest_format, skip=10)
+
+                    # rename vid so we know its processed
+                    processed_vid = vid + "processed"
+                    shutil.move(str(vid), str(processed_vid))
+
+        # Add job to the job queue
+        now = str(datetime.datetime.now())
+        job = {
+            "type": "RECONSTRUCT",
+            "time": now,
+            "location_id": location_id,
+            "images": num_images,
+            "frames": num_frames
+        }
+        response = requests.post(url="http://localhost:5000/jobadd",json=job)
+        jobQueue = str(response.json())
+
+        msg = "Updating point cloud with new content. Please wait. This can take a while."
+        msg += str(jobQueue)
+
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
+
+    if request.method == "POST" and "update-mesh" in request.form:
+        # TODO: call update mesh endpoint
+
+        msg = "Updating mesh with new content. Please wait. This can take a while."
+        return render_template("updatemodel.html",files=files,msg=msg,location_id=location_id)
+
+@app.route("/dashboard/colmapjobqueue", methods=["GET","POST"])
+def colmapjobqueue():
+    if request.method == "GET":
+        # send a request to colmap server
+        print("Sending request to colmap server")
+        response = requests.get("http://localhost:5000/jobstatus")
+        msg = str(response.json())
+        print("Received request: {}".format(msg))
+
+        return render_template("colmapjobqueue.html",msg=msg)
+
+    if request.method == "POST":
+        url = request.form["url"]
+        print("Requesting: {}".format(url))
+
+        response = requests.get(url)
+        msg = str(response.json())
+        print("Received request: {}".format(msg))
+
+        return render_template("colmapjobqueue.html",msg=msg)
+
+
+
+# ===============================================================================
 # User API
 # ===============================================================================
 
