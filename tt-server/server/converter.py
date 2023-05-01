@@ -41,7 +41,7 @@ def convert_ply(ply_path, output_path, display=False, heatmap=0.0, visualize=Fal
         return
     start_time = time.time()
     pcd = o3d.io.read_point_cloud(ply_path)
-    pcd = pcd.uniform_down_sample(every_k_points=15)
+    pcd = pcd.uniform_down_sample(every_k_points=10)
     cl, _ = pcd.remove_statistical_outlier(nb_neighbors=100, std_ratio=0.000001)
     pcd = cl
     pcd.estimate_normals()

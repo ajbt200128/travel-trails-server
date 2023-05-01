@@ -616,12 +616,6 @@ def colmapjobqueue():
 @app.route("/dashboard/viewmodel/<location_id>", methods=["GET"])
 def dashboard_viewmodel(location_id):
     if request.method == 'GET':
-        '''
-        location = Location.query.get(location_id)
-        model_path = location.model_path
-        heatmap_path = location.heatmap_path
-        '''
-        # TODO: fix these paths
         model_path = "http://coltrane.cs.seas.gwu.edu:8080/location/{}/model.gltf".format(location_id)
         heatmap_path= "http://coltrane.cs.seas.gwu.edu:8080/location/{}/heatmap.gltf".format(location_id)
 

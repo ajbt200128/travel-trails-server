@@ -22,17 +22,58 @@
       }
       </style>
 
-    <model-viewer src="{{model_path}}"
+    <model-viewer id="model" src="{{model_path}}"
     ar
     auto-rotate
-    camera-controls></model-viewer>
+    camera-controls>
+    <div class="controls">
+        <button onclick="exportGLBModel()">Export GLB</button>
+    </div> 
+    </model-viewer>
 
 
     <h1>Heatmap</h1>
-    <model-viewer src="{{heatmap_path}}"
+    <model-viewer id="heatmap" src="{{heatmap_path}}"
     ar
     auto-rotate
-    camera-controls></model-viewer>
+    camera-controls>
+    <div class="controls">
+        <button onclick="exportGLBHeatmap()">Export GLB</button>
+    </div> 
+    </model-viewer>
+
+    <script>
+      // Flip model vertically (was upside-down)
+      const modelViewerModel = document.querySelector("model-viewer#model");
+      const modelViewerHeatmap = document.querySelector("model-viewer#heatmap");
+      modelViewerModel.orientation = `${0}deg ${180}deg ${0}deg`;
+      modelViewerHeatmap.orientation = `${0}deg ${180}deg ${0}deg`;
+
+
+
+      async function exportGLBModel(){
+        const modelViewer = document.getElementById("model");
+        const glTF = await modelViewer.exportScene();
+        const file = new File([glTF], "model.glb");
+        const link = document.createElement("a");
+        link.download =file.name;
+        link.href = URL.createObjectURL(file);
+        link.click();
+      }
+
+      async function exportGLBHeatmap(){
+        const modelViewer = document.getElementById("heatmap");
+        const glTF = await modelViewer.exportScene();
+        const file = new File([glTF], "heatmap.glb");
+        const link = document.createElement("a");
+        link.download =file.name;
+        link.href = URL.createObjectURL(file);
+        link.click();
+      }
+
+
+
+    </script>
 
         <a href="/dashboard">Return to dashboard</a>
   </body>
